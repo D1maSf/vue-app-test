@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -18,6 +19,7 @@ const username = ref('');
 const password = ref('');
 const error = ref(null);
 const success = ref(null);
+const coincidence = ref(null);
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 const recaptchaLoaded = ref(false);
 const recaptchaWidgetId = ref(null);
@@ -126,6 +128,7 @@ const resetRecaptcha = () => {
 const submit = async () => {
   error.value = null;
   success.value = null;
+  coincidence.value = null;
 
   // Проверка на пустые поля
   if (!username.value || !password.value) {
@@ -144,6 +147,19 @@ const submit = async () => {
         error.value = 'Имя пользователя должно быть от 3 до 15 букв (латиница или кириллица)';
         return;
       }
+      // Проверка существования пользователя
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/check-username`, { username: username.value });
+        if (response.data.exists) {
+          setMessage(coincidence, 'Такой пользователь уже существует');
+          return;
+        }
+      } catch (err) {
+        console.error('Ошибка проверки существования пользователя:', err);
+        setMessage(error, 'Ошибка проверки существования пользователя');
+        return;
+      }
+
       // Регистрация с reCAPTCHA
       if (!recaptchaLoaded.value) {
         error.value = 'reCAPTCHA ещё не загрузилась, подождите';
@@ -182,6 +198,7 @@ const toggleForm = async () => {
   const wasLogin = isLogin.value;
   isLogin.value = !isLogin.value;
   error.value = null;
+  coincidence.value = null;
   success.value = null;
   username.value = '';
   password.value = '';
@@ -210,36 +227,56 @@ const toggleForm = async () => {
   <v-container>
     <v-row justify="center">
       <v-col cols="12" sm="9" lg="6">
-        <v-card>
-          <v-card-title>
-            {{ isLogin ? 'Вход' : 'Регистрация' }}
-          </v-card-title>
+        <v-card class="pa-4">
+            <h2 class="mb-4 text-center">
+              {{ isLogin ? 'Вход' : 'Регистрация' }}
+            </h2>
           <v-card-text>
             <v-form @submit.prevent="submit">
               <v-text-field
-                  v-model="username"
-                  label="Имя пользователя"
-                  required
-                  :error-messages="usernameErrors"
-              @input="validateUsername"
+                v-model="username"
+                label="Имя пользователя"
+                required
+                :error-messages="usernameErrors"
+                @input="validateUsername"
               ></v-text-field>
+
               <v-text-field
-                  v-model="password"
-                  label="Пароль"
-                  type="password"
-                  required
+                v-model="password"
+                label="Пароль"
+                type="password"
+                required
               ></v-text-field>
+
               <!-- reCAPTCHA только для регистрации, но остаётся в DOM -->
               <div v-show="!isLogin" id="recaptcha-container" class="g-recaptcha"></div>
-              <v-btn class="btn btn--default" type="submit" block :loading="authStore.loading">
+
+              <v-btn
+                class="btn btn--default"
+                type="submit"
+                block
+                :loading="authStore.loading"
+              >
                 {{ isLogin ? 'Войти' : 'Зарегистрироваться' }}
               </v-btn>
-              <v-btn text block @click="toggleForm" class="btn btn--light hover-on mt-2">
-                {{ isLogin ? 'Нет аккаунта? Зарегистрируйтесь' : 'Уже есть аккаунт? Войдите' }}
+
+              <v-btn
+                text
+                block
+                @click="toggleForm"
+                class="btn btn--light mt-2"
+              >
+                {{ isLogin ? 'Регистрация' : 'Вход' }}
               </v-btn>
-              <v-alert v-if="error" type="error" class="mt-2">{{ error }}</v-alert>
+
+              <v-alert v-if="error" type="error" class="mt-2">
+                {{ error }}
+              </v-alert>
               <v-alert v-if="success" type="success" class="mt-2">
                 {{ success }}
+              </v-alert>
+              <v-alert v-if="coincidence" type="warning" class="mt-2">
+                {{ coincidence }}
               </v-alert>
             </v-form>
           </v-card-text>
@@ -257,15 +294,14 @@ const toggleForm = async () => {
 }
 
 
+
 .g-recaptcha {
   margin: 20px 0;
-
 
   @media #{$xs} {
     margin: 10px 0;
     transform: scale(0.77); // Уменьшаем до 77% от оригинала
     transform-origin: 0 0;
   }
-
 }
 </style>

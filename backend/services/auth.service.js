@@ -88,6 +88,11 @@ class AuthService {
         };
     }
 
+    async checkUsername(username) {
+        const exists = await this.userModel.exists(username);
+        return exists;
+    }
+
     async login(username, password) {
         console.log('Попытка входа:', { username });
 

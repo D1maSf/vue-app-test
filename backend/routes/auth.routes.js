@@ -10,6 +10,7 @@ module.exports = (pool) => {
     router.post('/register', authController.register);
     router.post('/login', authController.login);
     router.get('/me', authenticateToken, authController.getCurrentUser);
+    router.post('/check-username', authController.checkUsername);
 
     return router;
 };

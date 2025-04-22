@@ -78,6 +78,20 @@ class UserModel {
         }
     }
 
+    // Проверка существования пользователя
+    async exists(username) {
+        try {
+            const query = {
+                text: 'SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)',
+                values: [username],
+            };
+            const result = await this.pool.query(query);
+            return result.rows[0].exists;
+        } catch (error) {
+            throw new Error(`Error checking user existence: ${error.message}`);
+        }
+    }
+
     // Обновление данных пользователя
     async update(userId, updateData) {
         try {

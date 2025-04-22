@@ -33,6 +33,16 @@ class AuthController {
             next(error);
         }
     };
+
+    checkUsername = async (req, res, next) => {
+        try {
+            const { username } = req.body;
+            const exists = await this.authService.checkUsername(username);
+            res.json({ exists });
+        } catch (error) {
+            next(error);
+        }
+    };
 }
 
 module.exports = AuthController;
