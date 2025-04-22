@@ -1,0 +1,56 @@
+$background-color: color(dark);
+$color: color(cream);
+$name-user__color: color(warning);
+
+$nav__background-color: #323136;
+$nav__color: color(cream);
+
+$topbar__background-color: color(transparent);
+
+.v-app-bar.v-toolbar.header {
+  background-color: $background-color;
+  color: $color;
+
+  .name-user {
+    color: $name-user__color;
+  }
+}
+
+nav.nav {
+  background-color: $nav__background-color;
+  color: $nav__color;
+}
+
+.v-navigation-drawer  {
+  @media (min-width: 960px) {
+    &__scrim {
+      display: none;
+    }
+  }
+
+  .social-icons {
+    margin-top: 25px;
+    justify-content: center;
+  }
+}
+
+.topbar {
+  z-index: 1;
+  position: fixed;
+  top: 64px;
+  width: 100%;
+  background-color: $topbar__background-color;
+
+  @media #{$md} {
+    display: none;
+  }
+
+  .v-container {
+    padding-top: 12px;
+  }
+
+  .social-icons {
+    margin-left: 10px;
+  }
+}
+

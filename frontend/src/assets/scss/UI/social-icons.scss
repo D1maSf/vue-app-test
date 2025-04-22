@@ -1,0 +1,28 @@
+//иконки соц-сетей
+.social-icons {
+  padding: 10px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  column-gap: 20px;
+  color: color(dark);
+  background-color: #ccc; /* Серый фон */
+  border: 3px solid #000; /* Толстая черная рамка */
+  box-shadow:
+            inset 3px 3px 0 #fff, /* Блик */
+            inset -3px -3px 0 #666; /* Тень */
+
+  &__link {
+    text-decoration: unset;
+    color: inherit;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    &::before {
+      font-size: 25px;
+    }
+  }
+}

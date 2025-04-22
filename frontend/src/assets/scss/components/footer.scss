@@ -1,0 +1,22 @@
+$background-color: color(dark);
+$info__background-color: color(warning);
+
+.footer {
+  background-color: $background-color;
+  color: color(cream);
+
+  &__desc {
+    font-size: 0.7rem;
+    opacity: 0.80;
+    color: inherit;
+  }
+
+  &__info {
+    align-items: center;
+    background-color: $info__background-color;
+    color: color(dark);
+    display: flex;
+    justify-content: space-between;
+    padding-left: 15px;
+  }
+}

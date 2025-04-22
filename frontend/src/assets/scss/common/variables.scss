@@ -1,0 +1,48 @@
+@import "grid-breakpoints";
+
+//шрифт для иконок
+$icons-font-family: icomoon !important;
+
+//цвета
+$colors: (
+        primary: #42a5f5,
+        secondary: #ff5722,
+        success: green,
+        danger: red,
+        warning: #ffd600,
+        info: #17a2b8,
+        light: #e2e6ea,
+        dark: #323136,
+        transparent: transparent,
+        gray: #aba7a7,
+        black: #000,
+        white: #fff,
+        light-gray: #f7f7f7,
+        cream: #f5deb3,
+        alice-blue: #f0f8ff,
+);
+
+//отступы
+$spacings: (
+        small: 0.5rem,
+        base: 1rem,
+        large: 2rem
+);
+
+//функция для цветов
+@function color($key) {
+  @if map-has-key($colors, $key) {
+    @return map-get($colors, $key);
+  } @else {
+    @warn "Цвет '#{$key}' не найден в $colors!";
+    @return color(danger)
+  }
+}
+
+
+
+// Функция для отступов
+@function spacing($key) {
+  @return map-get($spacings, $key);
+}
+

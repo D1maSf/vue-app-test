@@ -1,0 +1,142 @@
+$color--warning: color(warning);
+$color--gray: color(gray);
+$color--white: color(white);
+$color--light: color(light);
+$color--dark: color(dark);
+
+.v-btn.btn, a.btn {
+  padding: 10px;
+  border-radius: 5px;
+  text-decoration: unset;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border: 1px solid black;
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s; // Плавность для фона и текста
+  color: color(white);
+
+  @media #{$sm} {
+    font-size: 0.8rem;
+  }
+
+  @media #{$xs} {
+    font-size: 0.75rem;
+  }
+
+  &:active {
+    background: $color--gray;
+    transform: translate(0em, 0.75em);
+    color: $color--white;
+  }
+
+  &::before {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 3px;
+    right: 0;
+    bottom: 0;
+    background: color(transparent);
+    border-radius: inherit;
+    box-shadow: 0 3px 11px 0 #000, 0 0.425em 0 0 #c5bebe;
+    transform: translate3d(0, 0.3em, -1em);
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 1px solid black;
+  }
+
+  &:active::before {
+    box-shadow: 0 0 0 2px #FFF, 0 0 #FFF;
+    transform: translate3d(0, 0, -1em);
+    border: none;
+  }
+
+  &:hover {
+    border: 1px solid black;
+  }
+
+  &--default {
+    background-color: $color--dark;
+
+
+    &:hover {
+      color: $color--dark;
+      background-color: $color--warning;
+    }
+  }
+
+  &--link {
+    color: $color--dark;
+    background-color: $color--warning;
+    text-decoration: unset;
+    padding: 5px 10px;
+    text-transform: unset;
+    margin-left: 10px;
+
+    &:hover {
+      background-color: $color--dark;
+      color: $color--white;
+    }
+  }
+
+  &--light {
+    color: $color--dark;
+    background-color: $color--white;
+
+    @media #{$xs} {
+      font-size: 0.65rem;
+    }
+
+    &:hover {
+      background-color: $color--light;
+    }
+
+    &:active {
+      background: $color--gray;
+      color: $color--dark;
+    }
+  }
+}
+
+.v-btn.btn-pixel, a.btn-pixel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  background-color: #ccc; /* Серый фон */
+  border: 3px solid #000; /* Толстая черная рамка */
+  box-shadow:
+            inset 3px 3px 0 #fff, /* Блик */
+            inset -3px -3px 0 #666; /* Тень */
+  text-decoration: none;
+  color: color(dark); /* Цвет иконки */
+  font-size: 1rem; /* Размер иконки */
+  transition: transform 0.1s, box-shadow 0.1s;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    background-color: color(warning);
+    box-shadow:
+            inset 2px 2px 0 #fff, /* Уменьшенный блик */
+            inset -2px -2px 0 #666; /* Уменьшенная тень */
+
+    span {
+      transform: scale(1.03);
+    }
+  }
+
+  &:active {
+    transform: translateY(4px); /* Сильный сдвиг при клике */
+    box-shadow:
+            inset 3px 3px 0 #fff, /* Блик */
+            inset -3px -3px 0 #666; /* Тень */
+    background-color: #aaa; /* Темнее при нажатии */
+  }
+}

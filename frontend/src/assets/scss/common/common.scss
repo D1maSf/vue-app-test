@@ -1,0 +1,16 @@
+html {
+  font-size: 0.73rem !important;
+}
+body {
+  min-width: 300px;
+  letter-spacing: 2px;
+}
+
+main.v-main {
+  padding-top: 117px;
+  height: 100%;
+
+  @media #{$md} {
+    padding-top: 64px;
+  }
+}

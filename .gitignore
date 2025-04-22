@@ -1,0 +1,44 @@
+# node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# dotenv environment variables
+.env
+.env.local
+.env.*.local
+
+# Vue
+/dist
+/.output
+/.vite
+/.cache
+coverage/
+
+# Logs
+logs
+*.log
+debug.log
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Docker
+**/Dockerfile
+**/docker-compose.yml
+**/docker-compose.prod.yml
+**/docker-compose.override.yml
+**/*.env
+**/docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Optional lockfiles
+pnpm-lock.yaml

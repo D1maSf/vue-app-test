@@ -1,0 +1,27 @@
+.blog {
+
+
+  .blog__content {
+    padding: 25px 0;
+
+    .card {
+      cursor: pointer;
+      transition: transform 0.2s;
+      background-color: #f5deb3;
+
+      &:hover {
+        transform: scale(1.03);
+
+        & .btn--default {
+          background-color: color(warning);
+          color: color(black);
+
+          &  span {
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+  }
+}
+

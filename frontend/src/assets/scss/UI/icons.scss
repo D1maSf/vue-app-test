@@ -1,0 +1,54 @@
+$icons-ff: $icons-font-family;
+
+@font-face {
+  font-family: 'icomoon';
+  src:  url('@/assets/icons/icomoon.eot?q4arts');
+  src:  url('@/assets/icons/icomoon.eot?q4arts#iefix') format('embedded-opentype'),
+  url('@/assets/icons/icomoon.ttf?q4arts') format('truetype'),
+  url('@/assets/icons/icomoon.woff?q4arts') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-"],
+[class*=" icon-"] {
+  &::before {
+    font-weight: normal;
+    font-family: $icons-ff;
+    font-style: normal;
+    font-variant: normal;
+    line-height: 1;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.icon-arrow::before {
+  content: "\e900";
+}
+
+.icon-youtube::before {
+  content: "\e901";
+}
+
+.icon-twitter::before {
+  content: "\e903";
+}
+
+.icon-vk::before {
+  content: "\e904";
+}
+
+.icon-telegram::before {
+  content: "\e908";
+}
+
+.icon-instagram::before {
+  content: "\e90a";
+}
+
+.icon-github::before {
+  content: "\e906";
+}

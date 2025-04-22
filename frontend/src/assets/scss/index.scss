@@ -1,0 +1,19 @@
+//common
+@import "common/common";
+@import "common/variables";
+
+//UI
+@import "UI/common";
+@import "UI/btns";
+@import "UI/icons";
+@import "UI/toggle";
+@import "UI/social-icons";
+@import "UI/card";
+@import "UI/pagination";
+
+//sections
+@import "sections/hero";
+@import "sections/blog";
+//components
+@import "components/header";
+@import "components/footer";
