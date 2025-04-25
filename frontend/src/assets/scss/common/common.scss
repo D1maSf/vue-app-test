@@ -1,5 +1,17 @@
 html {
-  font-size: 0.73rem !important;
+  //font-size: clamp(0.73rem, 2vw, 2rem) !important;
+
+  @media  #{$min-xl} {
+    font-size: 2rem !important;
+  }
+
+  @media  #{$xl} {
+    font-size: 1.2rem !important;
+  }
+
+  @media  #{$lg} {
+    font-size: 0.73rem !important;
+  }
 }
 body {
   min-width: 300px;

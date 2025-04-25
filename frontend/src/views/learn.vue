@@ -9,7 +9,7 @@ import Hero from "@/components/hero.vue";
 
 <style lang="scss">
 .learn {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1)),  url("/image/learn.webp");
+  background-image: url("/image/learn.webp");
   background-position: center;
   background-size: cover;
 

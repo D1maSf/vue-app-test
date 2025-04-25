@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/auth'; // Импортируем хран�
 // Импорт компонентов
 const Home = () => import('../views/home.vue');
 const About = () => import('../views/about.vue');
+const Parallax = () => import('../views/parallaxContainer.vue');
 const Learn = () => import('../views/learn.vue');
 const TodoList = () => import('../views/todoList.vue');
 const Blog = () => import('../views/blog.vue');
@@ -16,6 +17,7 @@ const routes = [
     { path: '/about', name: 'about', component: About,  },
     { path: '/learn', name: 'learn', component: Learn,  },
     { path: '/todoList', name: 'todo', component: TodoList,  },
+    { path: '/parallaxContainer', name: 'parallax', component: Parallax, },
     { path: '/blog', name: 'blog', component: Blog, },
     { path: '/blog/:id', component: Article, name: 'article', props: true }, // Динамический маршрут для статьи
     {

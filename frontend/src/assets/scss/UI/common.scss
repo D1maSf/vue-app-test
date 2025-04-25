@@ -40,5 +40,9 @@ $hover--yellow__background-color: color(warning);
 
 //скеил по ховеру
 .scale-on-hover:hover span {
-  transform: scale(1.1);
+  @media  #{$lg} {
+    transform: scale(1.1);
+  }
+
+
 }

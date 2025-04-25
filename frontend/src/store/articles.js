@@ -15,30 +15,32 @@ export const useArticlesStore = defineStore('articles', {
             currentPage: 1,
             totalPages: 1,
             totalArticles: 0,
-            articlesPerPage: 4
+            articlesPerPage: 6
         }
     }),
+    
+    // Инициализируем store при создании
+    setup() {
+        const store = this;
+        store.articles = [];
+        return store;
+    },
 
     actions: {
 
         clearCache() {
-            // Очищаем локальное хранилище
             localStorage.removeItem('articles_pages');
             localStorage.removeItem('cachedArticles');
             localStorage.removeItem('cachedPagination');
-
-            // Сбрасываем состояние в Pinia
             this.pages = {};
             this.cachedArticle = {};
             this.pagination = {
                 currentPage: 1,
                 totalPages: 1,
                 totalArticles: 0,
-                articlesPerPage: 4,
+                articlesPerPage: 6
             };
             this.articles = [];
-            this.article = null;
-
             console.log('Кэш очищен');
         },
 
@@ -47,14 +49,12 @@ export const useArticlesStore = defineStore('articles', {
             const cachedPages = JSON.parse(localStorage.getItem('articles_pages'));
             if (cachedPages && typeof cachedPages === 'object') {
                 this.pages = cachedPages;
-                console.log('Загружены страницы из кэша:', Object.keys(this.pages));
             }
 
             // Загружаем кэшированную пагинацию
             const cachedPagination = JSON.parse(localStorage.getItem('cachedPagination'));
             if (cachedPagination && typeof cachedPagination === 'object') {
                 this.pagination = cachedPagination;
-                console.log('Загружена пагинация из кэша:', this.pagination);
             }
         },
 
@@ -63,7 +63,6 @@ export const useArticlesStore = defineStore('articles', {
             const cachedArticles = JSON.parse(localStorage.getItem('cachedArticles'));
             if (cachedArticles && typeof cachedArticles === 'object') {
                 this.cachedArticle = cachedArticles;
-                console.log('Загружены статьи из кэша:', Object.keys(this.cachedArticle));
             }
 
         },
@@ -71,76 +70,104 @@ export const useArticlesStore = defineStore('articles', {
 
         // Загружаем кэш из localStorage при инициализации
         initializeCache() {
+            // Инициализируем articles массивом
+            this.articles = [];
+            
             const cachedPages = localStorage.getItem('articles_pages');
             const cachedPagination = localStorage.getItem('cachedPagination');
             if (cachedPages) {
                 this.pages = JSON.parse(cachedPages);
-                console.log('Кэш pages загружен из localStorage:', this.pages);
+                // Инициализируем articles из кэша первой страницы
+                const page1 = this.pages[1];
+                if (page1) {
+                    this.articles = [...page1];
+                }
             }
             if (cachedPagination) {
                 this.pagination = JSON.parse(cachedPagination);
-                console.log('Кэш pagination загружен из localStorage:', this.pagination);
+            }
+        },
+
+        loadCache() {
+            const cachedPages = localStorage.getItem('articles_pages');
+            const cachedPagination = localStorage.getItem('cachedPagination');
+
+            if (cachedPages) {
+                try {
+                    const pages = JSON.parse(cachedPages);
+                    this.pages = pages;
+                } catch (error) {
+                    console.error('Ошибка при загрузке кэша:', error);
+                }
+            }
+
+            if (cachedPagination) {
+                try {
+                    const pagination = JSON.parse(cachedPagination);
+                    this.pagination = pagination;
+                } catch (error) {
+                    console.error('Ошибка при загрузке pagination:', error);
+                }
+            }
+
+            // Проверяем, есть ли данные в кэше
+            const cacheKey = `${this.pagination.articlesPerPage}_${this.pagination.currentPage}`;
+            if (this.pages[cacheKey]) {
+                this.articles = this.pages[cacheKey].data.data;
+            } else {
+                console.log('Данных в кэше нет');
             }
         },
 
         async loadArticles(page = 1, perPage = 6) {
-            // Валидация страницы
-            if (page < 1 || (this.pagination.totalPages > 0 && page > this.pagination.totalPages)) {
-                console.warn('Некорректный номер страницы:', page, 'totalPages:', this.pagination.totalPages);
-                return this.articles;
-            }
-
-            // Формируем ключ кэша: perPage_page (например, '6_2' или '4_3')
             const cacheKey = `${perPage}_${page}`;
-
-            // Проверяем кэш
+            
+            // Проверяем кэш для страницы
             if (this.pages[cacheKey]) {
-                this.articles = this.pages[cacheKey];
+                // Обновляем данные из кэша
+                this.articles = this.pages[cacheKey].data.data;
                 this.pagination.currentPage = page;
-                this.pagination.articlesPerPage = perPage;
-                console.log('Загружено из кэша:', cacheKey, this.articles);
+                this.pagination.totalArticles = this.pages[cacheKey].meta.total;
+                this.pagination.totalPages = this.pages[cacheKey].meta.total_pages;
+                this.pagination.articlesPerPage = this.pages[cacheKey].meta.per_page;
+                
                 return this.articles;
             }
 
-            // Очищаем старый кэш для другого perPage
-            this.clearCacheForOtherPerPage(perPage);
-
+            // Если нет данных в кэше, загружаем с бэкенда
             this.loading = true;
             this.error = null;
             try {
                 const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/articles`, {
                     params: {
                         page,
-                        per_page: perPage
-                    }
+                        per_page: perPage,
+                    },
                 });
 
-                console.log('Ответ от бэкенда:', response.data);
-
-                if (!response.data || !response.data.meta || !response.data.data) {
+                if (!response.data || !response.data.data) {
                     throw new Error('Некорректный формат ответа от сервера');
                 }
 
-                // Сохраняем статьи
-                this.articles = response.data.data;
-                this.pages[cacheKey] = response.data.data;
+                // Сохраняем статьи в состоянии
+                this.articles = response.data.data.data;
 
                 // Обновляем пагинацию
                 this.pagination = {
-                    currentPage: response.data.meta.current_page || 1,
-                    totalPages: response.data.meta.total_pages || 1,
-                    totalArticles: response.data.meta.total || 0,
-                    articlesPerPage: response.data.meta.per_page || perPage
+                    currentPage: response.data.data.meta.current_page || 1,
+                    totalPages: response.data.data.meta.total_pages || 1,
+                    totalArticles: response.data.data.meta.total || 0,
+                    articlesPerPage: response.data.data.meta.per_page || perPage,
                 };
 
-                // Сохраняем в localStorage
+                // Кэшируем данные
+                this.pages[cacheKey] = {
+                    data: response.data.data,
+                    meta: response.data.data.meta
+                };
                 localStorage.setItem('articles_pages', JSON.stringify(this.pages));
                 localStorage.setItem('cachedPagination', JSON.stringify(this.pagination));
 
-                // Ограничиваем размер кэша (например, храним до 10 страниц)
-                this.limitCacheSize(10);
-
-                console.log('Pagination state:', this.pagination);
                 return this.articles;
             } catch (error) {
                 this.error = 'Ошибка загрузки статей: ' + error.message;
@@ -157,7 +184,6 @@ export const useArticlesStore = defineStore('articles', {
                 const [cachedPerPage] = key.split('_').map(Number);
                 if (cachedPerPage !== perPage) {
                     delete this.pages[key];
-                    console.log(`Очищен кэш для perPage=${cachedPerPage}`);
                 }
             });
             // Обновляем localStorage после очистки
@@ -171,72 +197,12 @@ export const useArticlesStore = defineStore('articles', {
                 const oldestKeys = keys.slice(0, keys.length - maxPages);
                 oldestKeys.forEach(key => {
                     delete this.pages[key];
-                    console.log(`Удалён старый кэш:', ${key}`);
                 });
                 localStorage.setItem('articles_pages', JSON.stringify(this.pages));
             }
         },
 
 
-
-       /* async loadArticles(page = 1, perPage= 6) {
-            // Проверяем кэш для страницы
-            if (this.pages[page]) {
-                this.articles = this.pages[page];
-                this.pagination.currentPage = page;
-                console.log('Загружено из кэша:', page, this.articles);
-                return this.articles;
-            }
-
-            this.loading = true;
-            this.error = null;
-            try {
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/articles`, {
-                    params: {
-                        page,
-                        per_page: perPage,
-                    },
-                });
-
-                console.log('Ответ от бэкенда:', response.data);
-
-                if (!response.data || !response.data.meta || !response.data.data) {
-                    throw new Error('Некорректный формат ответа от сервера');
-                }
-
-                // Сохраняем статьи в состояние
-                this.articles = response.data.data;
-
-                // Кэшируем данные в Pinia
-                this.pages[page] = response.data.data;
-                localStorage.setItem('articles_pages', JSON.stringify(this.pages)); // Сохраняем кэш в localStorage
-
-                // Обновляем пагинацию
-                this.pagination = {
-                    currentPage: response.data.meta.current_page || 1,
-                    totalPages: response.data.meta.total_pages || 1,
-                    totalArticles: response.data.meta.total || 0,
-                    articlesPerPage: response.data.meta.per_page || perPage,
-                };
-
-                // Кэшируем пагинацию
-                localStorage.setItem('cachedPagination', JSON.stringify(this.pagination));
-                // Сохраняем пагинацию в состояние
-                this.pagination.currentPage = response.data.meta.current_page || 1;
-
-                console.log('Pagination state:', this.pagination);
-
-                console.log('Pagination state:', this.pagination);
-                return this.articles;
-            } catch (error) {
-                this.error = 'Ошибка загрузки статей: ' + error.message;
-                console.error('Ошибка загрузки статей:', error);
-                return [];
-            } finally {
-                this.loading = false;
-            }
-        },
-*/
         async loadArticleById(id) {
             this.loading = true;
             this.error = null;
@@ -252,7 +218,6 @@ export const useArticlesStore = defineStore('articles', {
             const cachedArticle = this.cachedArticle[articleId];
             if (cachedArticle) {
                 this.article = cachedArticle;
-                console.log('Статья загружена из Pinia кэша:', this.article);
                 this.loading = false;
                 return;
             }
@@ -264,8 +229,6 @@ export const useArticlesStore = defineStore('articles', {
                 // Кэшируем статью в Pinia
                 this.cachedArticle[articleId] = this.article;
                 localStorage.setItem('cachedArticles', JSON.stringify(this.cachedArticle));
-
-                console.log('Статья загружена с сервера:', this.article);
             } catch (error) {
                 this.error = 'Ошибка загрузки статьи';
                 console.error('Ошибка загрузки статьи:', error.message);
@@ -276,38 +239,24 @@ export const useArticlesStore = defineStore('articles', {
         },
 
         async uploadImage(file) {
-            this.loading = true;
-            this.error = null;
-            this.uploadProgress = 0;
-
             try {
-                if (!file || !(file instanceof File)) {
-                    throw new Error('Файл не выбран или имеет неверный формат');
-                }
-
                 const formData = new FormData();
                 formData.append('image', file);
 
-                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/articles/upload`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
                     onUploadProgress: (progressEvent) => {
                         this.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                     }
                 });
 
-                const imageUrl = response.data.imageUrl;
-                if (!imageUrl) {
-                    throw new Error('Сервер не вернул URL изображения');
-                }
-
-                return { success: true, imageUrl };
+                // Возвращаем объект с правильным полем imageUrl
+                return { imageUrl: response.data.url };
             } catch (error) {
-                this.error = error.message || 'Ошибка загрузки изображения';
                 console.error('Ошибка загрузки изображения:', error);
-                return { success: false, error: this.error };
-            } finally {
-                this.loading = false;
-                this.uploadProgress = 0;
+                throw new Error(`Ошибка загрузки изображения: ${error.message}`);
             }
         },
 
@@ -315,22 +264,41 @@ export const useArticlesStore = defineStore('articles', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/articles`, {
-                    title: newArticle.title,
-                    content: newArticle.content,
-                    image: newArticle.image,
-                    author: newArticle.author || 'Anonymous'
+                // Формируем FormData для отправки файла
+                const formData = new FormData();
+                formData.append('title', newArticle.title);
+                formData.append('content', newArticle.content);
+                formData.append('image', newArticle.file);
+
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/articles`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
                 });
-                // Обновляем кэш и текущую страницу
+                
+                // Сначала добавляем статью в текущий список
+                const article = response.data;
+                this.articles.unshift(article);
+
+                // Затем обновляем кэш
                 if (this.pagination.currentPage === 1) {
-                    this.articles.unshift(response.data);
-                    this.pages[1] = [...this.articles];
+                    // Если первая страница, обновляем кэш первой страницы
+                    if (!this.pages[1]) {
+                        this.pages[1] = [];
+                    }
+                    this.pages[1] = [article, ...this.pages[1]];
                 }
+
+                // Обновляем пагинацию
                 this.pagination.totalArticles += 1;
                 this.pagination.totalPages = Math.ceil(this.pagination.totalArticles / this.pagination.articlesPerPage);
+
+                // Сохраняем обновленный кэш
+                localStorage.setItem('articles_pages', JSON.stringify(this.pages));
+                localStorage.setItem('cachedPagination', JSON.stringify(this.pagination));
             } catch (error) {
-                this.error = 'Ошибка добавления статьи';
-                console.error('Ошибка добавления статьи:', error.message);
+                this.error = 'Ошибка добавления статьи: ' + error.message;
+                console.error('Ошибка добавления статьи:', error);
                 throw error;
             } finally {
                 this.loading = false;
@@ -341,10 +309,21 @@ export const useArticlesStore = defineStore('articles', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/articles/${article.id}`, {
-                    ...article,
-                    author: article.author || 'Anonymous'
+                const formData = new FormData();
+                formData.append('title', article.title);
+                formData.append('content', article.content);
+                if (article.file) {
+                    formData.append('image', article.file);
+                } else if (article.image_url) {
+                    formData.append('image_url', article.image_url);
+                }
+
+                const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/articles/${article.id}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
                 });
+                
                 // Обновляем кэш
                 for (const page in this.pages) {
                     const index = this.pages[page].findIndex(a => a.id === article.id);
@@ -372,25 +351,21 @@ export const useArticlesStore = defineStore('articles', {
             this.loading = true;
             this.error = null;
             try {
-                const articleId = Number(id);
-                if (!articleId || isNaN(articleId)) {
-                    throw new Error('Некорректный ID');
-                }
-                await axios.delete(`${import.meta.env.VITE_API_URL}/api/articles/${articleId}`);
+                await axios.delete(`${import.meta.env.VITE_API_URL}/api/articles/${id}`);
                 // Обновляем кэш
                 for (const page in this.pages) {
-                    this.pages[page] = this.pages[page].filter(article => article.id !== articleId);
+                    this.pages[page] = this.pages[page].filter(article => article.id !== id);
                     if (Number(page) === this.pagination.currentPage) {
                         this.articles = [...this.pages[page]];
                     }
                 }
                 this.pagination.totalArticles -= 1;
                 this.pagination.totalPages = Math.ceil(this.pagination.totalArticles / this.pagination.articlesPerPage);
-                if (this.article && this.article.id === articleId) {
+                if (this.article && this.article.id === id) {
                     this.article = null;
                 }
             } catch (error) {
-                this.error = 'Ошибка удаления статьи';
+                this.error = 'Ошибка удаления статьи: ' + error.message;
                 console.error('Ошибка удаления статьи:', error.message);
                 throw error;
             } finally {
@@ -399,50 +374,68 @@ export const useArticlesStore = defineStore('articles', {
         },
 
         async goToPrevious(currentId, router) {
+            // Загружаем статьи текущей страницы
+            await this.loadArticles(this.pagination.currentPage, this.pagination.articlesPerPage);
+            
             const currentIndex = this.articles.findIndex(a => a.id === Number(currentId));
-
+            
             if (currentIndex === 0 && this.pagination.currentPage > 1) {
+                // Если это первая статья на странице и есть предыдущая страница
                 const previousPage = this.pagination.currentPage - 1;
-
-                // Загружаем статьи предыдущей страницы
                 await this.loadArticles(previousPage, this.pagination.articlesPerPage);
-
-                // Обновляем текущие статьи из кэша
-                this.articles = this.pages[previousPage];
-                this.pagination.currentPage = previousPage;
-
-                const previousArticle = this.articles[this.articles.length - 1];
-                this.article = previousArticle;
-                router.push(`/blog/${previousArticle.id}`);
+                const lastArticle = this.articles[this.articles.length - 1];
+                router.push(`/blog/${lastArticle.id}`);
             } else if (currentIndex > 0) {
+                // Если это не первая статья на странице
                 const previousArticle = this.articles[currentIndex - 1];
-                this.article = previousArticle;
                 router.push(`/blog/${previousArticle.id}`);
             }
         },
 
         async goToNext(currentId, router) {
+            // Загружаем статьи текущей страницы
+            await this.loadArticles(this.pagination.currentPage, this.pagination.articlesPerPage);
+            
             const currentIndex = this.articles.findIndex(a => a.id === Number(currentId));
-
+            
             if (currentIndex === this.articles.length - 1 && this.pagination.currentPage < this.pagination.totalPages) {
+                // Если это последняя статья на странице и есть следующая страница
                 const nextPage = this.pagination.currentPage + 1;
-
-                // Загружаем статьи следующей страницы
                 await this.loadArticles(nextPage, this.pagination.articlesPerPage);
-
-                // Обновляем текущие статьи из кэша
-                this.articles = this.pages[nextPage];
-                this.pagination.currentPage = nextPage;
-
-                const nextArticle = this.articles[0];
-                this.article = nextArticle;
-                router.push(`/blog/${nextArticle.id}`);
-            } else if (currentIndex < this.articles.length - 1 && currentIndex !== -1) {
+                const firstArticle = this.articles[0];
+                router.push(`/blog/${firstArticle.id}`);
+            } else if (currentIndex < this.articles.length - 1) {
+                // Если это не последняя статья на странице
                 const nextArticle = this.articles[currentIndex + 1];
-                this.article = nextArticle;
                 router.push(`/blog/${nextArticle.id}`);
             }
         },
+        
+        clearAllCache() {
+            localStorage.removeItem('articles_pages');
+            localStorage.removeItem('cachedPagination');
+            localStorage.removeItem('cachedArticles');
+            
+            Object.keys(this.pages).forEach(key => {
+                delete this.pages[key];
+            });
+            
+            this.pages = {};
+            
+            this.pagination = {
+                currentPage: 1,
+                totalPages: 1,
+                totalArticles: 0,
+                articlesPerPage: 6
+            };
+            
+            this.articles = [];
+            
+            setTimeout(() => {
+                location.reload();
+            }, 100);
+        },
+
     },
 
     // Переход на первую статью сайта
@@ -452,7 +445,6 @@ export const useArticlesStore = defineStore('articles', {
 
         if (firstArticle) {
             // Переход на первую статью (можно использовать router.push или другой метод перехода)
-            console.log('Перехожу к первой статье:', firstArticle.id);
             this.router.push({ name: 'article', params: { id: firstArticle.id } });
         }
     },
@@ -464,20 +456,22 @@ export const useArticlesStore = defineStore('articles', {
 
         if (lastArticle) {
             // Переход на последнюю статью (можно использовать router.push или другой метод перехода)
-            console.log('Перехожу к последней статье:', lastArticle.id);
             this.router.push({ name: 'article', params: { id: lastArticle.id } });
         }
     },
 
     getters: {
-        isFirst: (state) => (id) => {
-            const currentIndex = state.articles.findIndex(a => a.id === Number(id));
-            return currentIndex === 0 && state.pagination.currentPage === 1;
+        getCurrentArticles: (state) => {
+            const cacheKey = `${state.pagination.articlesPerPage}_${state.pagination.currentPage}`;
+            const articles = state.pages[cacheKey]?.data?.data || []; // Получаем данные из data.data
+            return articles;
         },
-
-        isLast: (state) => (id) => {
-            const currentIndex = state.articles.findIndex(a => a.id === Number(id));
-            return currentIndex === state.articles.length - 1 && state.pagination.currentPage === state.pagination.totalPages;
+        
+        isFirst: (state) => {
+            return state.pagination.currentPage === 1;
         },
+        isLast: (state) => {
+            return state.pagination.currentPage === state.pagination.totalPages;
+        }
     }
 });

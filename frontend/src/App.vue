@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import Header from '@/components/header.vue';
 import Footer from '@/components/footer.vue';
@@ -31,11 +31,5 @@ html {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-}
-
-html {
-  background-image: url("/image/blog.png");
-  background-position: center;
-  background-size: cover;
 }
 </style>

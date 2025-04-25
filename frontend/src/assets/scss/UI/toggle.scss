@@ -1,6 +1,35 @@
 .toggle {
+  cursor: pointer;
+  position: relative;
+  width: 64px;
+  height: auto;
+  background-color: transparent;
+  transform: scale(1.1);
+
+  &::before, &::after {
+    content: "";
+    border-radius: 100%;
+    position: absolute;
+    height: 50px;
+    top: 0;
+    right: 3px;
+    width: 55px;
+  }
+
+  &:hover::before {
+    
+    background-color: #f5deb3;
+    opacity: 0.1;
+  }
+
+  &:active::after {
+    background-color: #f5deb33d;
+    border-radius: 100%;
+    }
+   
   & svg {
-    width: 65px;
+    width: 100%;
+    height: auto;
   }
 
   & path {
@@ -8,8 +37,8 @@
     fill: none;
     stroke: color(cream);
     stroke-dashoffset: 0;
-    stroke-linecap: round;
-    stroke-width: 42.5px;
+    stroke-linecap: square;
+    stroke-width: 45px;
 
     &.top,
     &.bottom {

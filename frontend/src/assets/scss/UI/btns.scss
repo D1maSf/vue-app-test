@@ -4,7 +4,7 @@ $color--white: color(white);
 $color--light: color(light);
 $color--dark: color(dark);
 
-.v-btn.btn, a.btn {
+ button.btn, a.btn {
   padding: 10px;
   border-radius: 5px;
   text-decoration: unset;
@@ -52,7 +52,8 @@ $color--dark: color(dark);
   }
 
   &:active::before {
-    box-shadow: 0 0 0 2px #FFF, 0 0 #FFF;
+    box-shadow: unset;
+    //box-shadow: 0 0 0 2px #FFF, 0 0 #FFF;
     transform: translate3d(0, 0, -1em);
     border: none;
   }
@@ -62,12 +63,18 @@ $color--dark: color(dark);
   }
 
   &--default {
-    background-color: $color--dark;
+    background-color: $color--gray;
+    color: $color--dark;
 
 
     &:hover {
       color: $color--dark;
       background-color: $color--warning;
+    }
+
+    &:active {
+      background: $color--dark;
+      color: $color--white;
     }
   }
 
@@ -77,11 +84,14 @@ $color--dark: color(dark);
     text-decoration: unset;
     padding: 5px 10px;
     text-transform: unset;
-    margin-left: 10px;
-    
 
     &:hover {
       background-color: $color--dark;
+      color: $color--white;
+    }
+
+    &:active {
+      background: #979797;
       color: $color--white;
     }
   }
@@ -99,13 +109,25 @@ $color--dark: color(dark);
     }
 
     &:active {
-      background: $color--gray;
-      color: $color--dark;
+      background: #979797;
+      color: $color--white;
     }
   }
 }
 
-.v-btn.btn-pixel, a.btn-pixel {
+.btn-login {
+  &:hover {
+    background-color: green;
+  }
+}
+
+.btn-logout {
+  &:hover {
+    background-color: red;
+  }
+}
+
+.btn-pixel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
