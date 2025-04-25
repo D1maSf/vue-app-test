@@ -1,10 +1,10 @@
 $grid-breakpoints: (
         xs: 0,
-        sm: 576px,
-        md: 768px,
-        lg: 992px,
-        xl: 1200px,
-        xxl: 1400px
+        sm: 960px,
+        md: 1280px,
+        lg: 1920px,
+        xl: 2560px,
+        xxl: 4000px
 ) !default;
 $container-max-widths: (
         sm: 540px,
@@ -15,13 +15,13 @@ $container-max-widths: (
 ) !default;
 $grid-columns: 12 !default;
 $grid-gutter-width: 1.5rem !default;
-$xs: '(max-width: 375px)' !default;
-$sm: '(max-width: #{map-get($grid-breakpoints , sm) - 1px})' !default;
-$md: '(max-width: #{map-get($grid-breakpoints, md) - 1px})' !default;
-$lg: '(max-width: #{map-get($grid-breakpoints, lg) - 1px})' !default;
-$xl: '(max-width: #{map-get($grid-breakpoints, xl) - 1px})' !default;
-$xxl: '(max-width: #{map-get($grid-breakpoints, xxl) - 1px})' !default;
-$min-xs: '(min-width: 375px)';
+$xs: '(max-width: 600px)' !default;
+$sm: '(max-width: #{map-get($grid-breakpoints , sm)})' !default;
+$md: '(max-width: #{map-get($grid-breakpoints, md)})' !default;
+$lg: '(max-width: #{map-get($grid-breakpoints, lg)})' !default;
+$xl: '(max-width: #{map-get($grid-breakpoints, xl)})' !default;
+$xxl: '(max-width: #{map-get($grid-breakpoints, xxl)})' !default;
+$min-xs: '(min-width: 600px)';
 $min-sm: '(min-width: #{map-get($grid-breakpoints, sm)})' !default;
 $min-md: '(min-width: #{map-get($grid-breakpoints, md)})' !default;
 $min-lg: '(min-width: #{map-get($grid-breakpoints, lg)})' !default;

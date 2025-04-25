@@ -14,8 +14,19 @@ class ArticleController {
                 return res.status(400).json({ error: 'Некорректные параметры пагинации' });
             }
 
-            const result = await this.articleService.getAllArticles(page, perPage);
-            res.json(result);
+            const articles = await this.articleService.getAll(page, perPage);
+            const total = await this.articleService.getCount();
+            const totalPages = Math.ceil(total / perPage);
+
+            return res.json({
+                data: articles,
+                meta: {
+                    current_page: page,
+                    per_page: perPage,
+                    total_pages: totalPages,
+                    total: total,
+                }
+            });
         } catch (error) {
             next(error);
         }
@@ -86,6 +97,17 @@ class ArticleController {
             }
         }
     };
+
+    uploadImage = async (req, res, next) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ error: 'No file uploaded' });
+            }
+            return res.json({ url: `/images/${req.file.filename}` });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = ArticleController;

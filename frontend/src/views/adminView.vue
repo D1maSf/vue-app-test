@@ -11,12 +11,20 @@ const articlesStore = useArticlesStore();
 const dialog = ref(false);
 const isEditing = ref(false);
 const currentArticle = ref({ id: null, title: '', content: '', image: '', file: null });
-const { changePage } = useChangePage(4);
+const { changePage } = useChangePage(6);
 
+// Метод для полной очистки кэша
+const clearAllCache = () => {
+    articlesStore.clearAllCache();
+    // Перезагружаем страницу после очистки кэша
+    location.reload();
+};
 
+// Отслеживаем изменения в store
 onMounted(() => {
-  const page = parseInt(route.query.page) || 1;
-  articlesStore.loadArticles(page, 4); // Загружаем статьи для текущей страницы
+    // Загружаем статьи
+    const page = parseInt(route.query.page) || 1;
+    articlesStore.loadArticles(page, 6); // Загружаем статьи для текущей страницы
 });
 
 const openAddDialog = () => {
@@ -53,25 +61,30 @@ const saveArticle = async () => {
 
     if (currentArticle.value.file) {
       const uploadResult = await articlesStore.uploadImage(currentArticle.value.file);
-      if (!uploadResult.success) {
-        throw new Error(`Ошибка загрузки изображения: ${uploadResult.error}`);
+      if (!uploadResult.imageUrl) {
+        throw new Error(`Ошибка загрузки изображения: ${uploadResult.error || 'Не удалось получить URL изображения'}`);
       }
       articleData.image = uploadResult.imageUrl;
     } else if (!articleData.image) {
       throw new Error('Изображение обязательно');
     }
 
+    // Сбрасываем файл после загрузки
+    currentArticle.value.file = null;
+
     if (isEditing.value) {
       await articlesStore.editArticle(articleData);
     } else {
       await articlesStore.addArticle(articleData);
+      // После добавления статьи загружаем первую страницу
+      await articlesStore.loadArticles(1, articlesStore.pagination.articlesPerPage);
     }
 
     resetForm();
     dialog.value = false;
   } catch (error) {
     console.error('Ошибка сохранения:', error);
-    alert(error.message);
+    alert('Ошибка при сохранении статьи: ' + error.message);
   }
 };
 
@@ -80,37 +93,35 @@ const deleteArticle = async (id) => {
     await articlesStore.deleteArticle(id);
   } catch (error) {
     console.error('Ошибка удаления:', error);
+    alert('Ошибка при удалении статьи: ' + error.message);
   }
 };
 
 // Обработчик для очистки кэша
-const clearAllCache = () => {
-  articlesStore.clearCache(); // вызываем метод очистки
-  alert('Кэш был очищен!');
-};
 </script>
 
 <template>
   <div>
-    <!-- Кнопка для очистки кэша -->
-    <v-btn @click="clearAllCache" color="red" variant="outlined">
-      Очистить кэш
-    </v-btn>
   </div>
   <v-container fluid>
-    <v-btn @click="openAddDialog" class="mb-4 btn btn--light">Добавить статью</v-btn>
-    <div v-if="articlesStore.articles.length">
+    <div class="d-flex justify-space-between mb-4">
+      <v-btn @click="openAddDialog" class="btn btn--light">Добавить статью</v-btn>
+      <v-btn @click="clearAllCache" color="red" class="btn btn--light">Очистить кэш</v-btn>
+    </div>
+    
+    <div v-if="articlesStore.getCurrentArticles.length">
       <v-row dense>
-        <v-col v-for="article in articlesStore.articles" :key="article.id" cols="12">
+        <v-col v-for="article in articlesStore.getCurrentArticles" :key="article.id" cols="12">
           <v-card class="card">
             <v-row no-gutters>
               <v-col cols="12" sm="4">
-                <v-img :src="getFullImageUrl(article.image)" height="200px" cover></v-img>
+                <v-img :src="getFullImageUrl(article.image_url)" height="200px" cover></v-img>
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card-title>{{ article.title }}</v-card-title>
                 <v-card-text>{{ article.content.substring(0, 50) }}...</v-card-text>
-                <v-card-text>Опубликовано: {{ formatDate(article.published_date) }}</v-card-text>
+                <v-card-text>Опубликовано: {{ formatDate(article.created_at) }}</v-card-text>
+                <v-card-text>Автор: {{ article.author_name }}</v-card-text>
                 <v-card-actions>
                   <v-btn @click="deleteArticle(article.id)" color="red">Удалить</v-btn>
                   <v-btn @click="openEditDialog(article)" color="orange">Редактировать</v-btn>
@@ -119,6 +130,7 @@ const clearAllCache = () => {
             </v-row>
           </v-card>
         </v-col>
+        
         <!-- Пагинация -->
         <Pagination
             :totalPages="articlesStore.pagination.totalPages"
@@ -159,7 +171,7 @@ const clearAllCache = () => {
 
 <style lang="scss">
 .admin {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1)),  url("/image/admin.jpg");
+  background-image: url("/image/admin.jpg");
   background-position: center;
   background-size: cover;
 

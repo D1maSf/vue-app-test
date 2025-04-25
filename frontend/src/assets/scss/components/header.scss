@@ -11,6 +11,17 @@ $topbar__background-color: color(transparent);
   background-color: $background-color;
   color: $color;
 
+  .v-toolbar {
+    &-items {
+      column-gap: 15px;
+      align-items: center;
+
+      & a::after, & button::after {
+        opacity: 1 ;
+      }
+    }
+  }
+
   .name-user {
     color: $name-user__color;
   }
@@ -22,7 +33,11 @@ nav.nav {
 }
 
 .v-navigation-drawer  {
-  @media (min-width: 960px) {
+  &__scrim {
+    cursor: pointer;
+  }
+
+  @media #{$min-md} {
     &__scrim {
       display: none;
     }

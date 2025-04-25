@@ -111,7 +111,7 @@ const restoreToCompleted = (id) => {
 
 <style lang="scss">
 .todo {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1)),  url("/image/todo.webp");
+  background-image: url("/image/todo.webp");
   background-position: center;
   background-size: cover;
 
@@ -147,25 +147,7 @@ input, select, button {
   color: gray;
 }
 
-/* Красный */
-.high {
-  background-color: #ffcccc;
-}
 
-/* Жёлтый */
-.medium {
-  background-color: #fff5cc;
-}
-
-/* Зелёный */
-.low {
-  background-color: #ccffcc;
-}
-
-/* Без приоритета */
-.no-priority {
-  background-color: #cce5ff;
-}
 
 /* Стили для кнопок вкладок */
 .tabs {

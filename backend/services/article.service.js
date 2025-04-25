@@ -5,12 +5,13 @@ const path = require('path');
 class ArticleService {
     constructor(pool) {
         this.articleModel = new ArticleModel(pool);
+        this.pool = pool;
     }
 
-    async getAllArticles(page = 1, perPage = 6) {
+    async getAll(page = 1, perPage = 6) {
         try {
             const articles = await this.articleModel.getAll(page, perPage);
-            const total = await this.articleModel.getCount();
+            const total = await this.getCount();
             const totalPages = Math.ceil(total / perPage);
 
             return {
@@ -39,17 +40,32 @@ class ArticleService {
         }
     }
 
+    async getCount() {
+        try {
+            const query = {
+                text: 'SELECT COUNT(*) as total FROM articles'
+            };
+            const result = await this.pool.query(query);
+            return parseInt(result.rows[0].total);
+        } catch (error) {
+            throw new Error(`Error counting articles: ${error.message}`);
+        }
+    }
+
     async createArticle(title, content, userId, imageFile = null) {
         try {
-            let imageUrl = null;
+            let image_url = null;
             if (imageFile) {
-                imageUrl = imageFile.path.replace('public', '');
+                // Используем правильный путь к изображению
+                image_url = `/images/${imageFile.filename}`;
             }
             
-            return await this.articleModel.create(title, content, userId, imageUrl);
+            return await this.articleModel.create(title, content, userId, image_url);
         } catch (error) {
             if (imageFile) {
-                await fs.unlink(imageFile.path).catch(console.error);
+                // Удаляем файл, если произошла ошибка
+                const imagePath = path.join('public/images', imageFile.filename);
+                await fs.unlink(imagePath).catch(console.error);
             }
             throw new Error(`Error creating article: ${error.message}`);
         }
@@ -57,7 +73,16 @@ class ArticleService {
 
     async updateArticle(id, userId, updateData) {
         try {
-            const article = await this.articleModel.update(id, userId, updateData);
+            // Удаляем поля, которые не должны обновляться
+            const { author_name, file, image, ...allowedUpdateData } = updateData;
+            
+            if (updateData.file) {
+                // Если есть новый файл, обрабатываем его
+                const imageUrl = `/images/${updateData.file.filename}`;
+                allowedUpdateData.image_url = imageUrl;
+            }
+            
+            const article = await this.articleModel.update(id, userId, allowedUpdateData);
             if (!article) {
                 throw new Error('Article not found or unauthorized');
             }

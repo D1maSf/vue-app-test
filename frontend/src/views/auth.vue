@@ -232,7 +232,7 @@ const toggleForm = async () => {
               {{ isLogin ? 'Вход' : 'Регистрация' }}
             </h2>
           <v-card-text>
-            <v-form @submit.prevent="submit">
+            <v-form class="form-auth" @submit.prevent="submit">
               <v-text-field
                 v-model="username"
                 label="Имя пользователя"
@@ -252,19 +252,21 @@ const toggleForm = async () => {
               <div v-show="!isLogin" id="recaptcha-container" class="g-recaptcha"></div>
 
               <v-btn
-                class="btn btn--default"
+                class="btn btn--default h-auto"
                 type="submit"
                 block
                 :loading="authStore.loading"
+
               >
                 {{ isLogin ? 'Войти' : 'Зарегистрироваться' }}
               </v-btn>
 
-              <v-btn
+              <v-btn h-0
                 text
                 block
                 @click="toggleForm"
-                class="btn btn--light mt-2"
+                class="btn btn--light mt-2 h-auto"
+                elevation="24"
               >
                 {{ isLogin ? 'Регистрация' : 'Вход' }}
               </v-btn>
@@ -288,12 +290,18 @@ const toggleForm = async () => {
 
 <style lang="scss">
 .auth {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1)),  url("/image/auth.webp");
+  background-image: url("/image/auth.webp");
   background-position: center;
   background-size: cover;
 }
 
-
+.form-auth {
+  @media #{$min-lg} {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+}
 
 .g-recaptcha {
   margin: 20px 0;

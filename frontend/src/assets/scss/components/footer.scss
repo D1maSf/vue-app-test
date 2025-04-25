@@ -5,6 +5,12 @@ $info__background-color: color(warning);
   background-color: $background-color;
   color: color(cream);
 
+  .v-toolbar {
+    &-items {
+      align-items: center;
+    }
+  }
+
   &__desc {
     font-size: 0.7rem;
     opacity: 0.80;

@@ -46,9 +46,9 @@ const allNavLinks = computed(() => {
 
 <template>
 
-  <v-app-bar class="header">
+  <v-app-bar class="header h-auto">
     <v-container>
-      <v-row>
+      <v-row class="align-center">
         <a class="logo" href="">
           <img src="/image/logo-8bit.png" alt="logo for header">
         </a>
@@ -57,7 +57,7 @@ const allNavLinks = computed(() => {
         </v-card-text>
         <v-spacer></v-spacer>
 
-        <v-app-bar-nav-icon @click="toggleMenu" :class="{ 'toggle--open': isMenuOpen }" class="toggle d-md-none scale-on-hover">
+        <button @click="toggleMenu" :class="{ 'toggle--open': isMenuOpen }" class="toggle d-lg-none">
             <svg viewBox="0 0 800 600">
               <path d="M300,220 C300,220 520,220 540,220 C740,220 640,540 520,420 C440,340 300,200 300,200"
                     class="top"></path>
@@ -65,25 +65,25 @@ const allNavLinks = computed(() => {
               <path d="M300,210 C300,210 520,210 540,210 C740,210 640,530 520,410 C440,330 300,190 300,190"
                     class="bottom" transform="translate(480, 320) scale(1, -1) translate(-480, -318) "></path>
             </svg>
-        </v-app-bar-nav-icon>
+          </button>
 
         <!-- Навигация для десктопа (без подменю) -->
-        <v-toolbar-items class="d-none d-md-flex ga-1">
+        <v-toolbar-items class="d-none d-lg-flex">
           <v-btn class="py-2 scale-on-hover" v-for="link in allNavLinks" :key="link.text" :to="link.href">
             {{ link.text }}
           </v-btn>
         </v-toolbar-items>
 
         <!-- Кнопки входа/выхода для десктопа -->
-        <v-toolbar-items class="d-none d-md-flex">
-          <v-btn class="py-2 scale-on-hover" v-if="!isAuthenticated" to="/auth">Вход / Регистрация</v-btn>
-          <v-btn class="py-2 scale-on-hover" v-else @click="logoutHandler">Выйти</v-btn>
+        <v-toolbar-items class="d-none d-lg-flex ml-4">
+          <v-btn class="py-2 scale-on-hover btn-login" v-if="!isAuthenticated" to="/auth">Вход / Регистрация</v-btn>
+          <v-btn class="py-2 scale-on-hover btn-logout" v-else @click="logoutHandler">Выйти</v-btn>
         </v-toolbar-items>
       </v-row>
     </v-container>
     <!-- Мобильное меню -->
   </v-app-bar>
-  <v-navigation-drawer  class="nav d-md-none" v-model="isMenuOpen" temporary app right>
+  <v-navigation-drawer  class="nav d-lg-none" v-model="isMenuOpen" temporary app right>
     <v-list dense>
       <v-list-item
           v-for="link in allNavLinks"
@@ -103,10 +103,10 @@ const allNavLinks = computed(() => {
       </v-list-item>
 
       <!-- Кнопки входа/выхода для мобильного -->
-      <v-list-item v-if="!isAuthenticated" to="/auth" @click="isMenuOpen = false">
+      <v-list-item class="btn-login" v-if="!isAuthenticated" to="/auth" @click="isMenuOpen = false">
         <v-list-item-title>Вход / Регистрация</v-list-item-title>
       </v-list-item>
-      <v-list-item v-else @click="logoutHandler">
+      <v-list-item class="btn-logout" v-else @click="logoutHandler">
         <v-list-item-title>Выйти</v-list-item-title>
       </v-list-item>
       <div class="social-icons social-icons--pixel">
@@ -140,19 +140,9 @@ const allNavLinks = computed(() => {
         </div>
       </v-row>
     </v-container>
-
   </div>
 
 
 </template>
 
-<style lang="scss">
-
-.v-toolbar-items {
-  align-items: center;
-}
-
-
-
-
-</style>
+<style lang="scss"></style>

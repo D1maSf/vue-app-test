@@ -22,6 +22,10 @@ export const useHeroStore = defineStore('heroStore', () => {
             heroText: 'Задачник',
             description: 'Создавайте задачи и совершенствуйтесь в их выполнении',
         },
+        parallax: {
+            heroText: 'Параллакс',
+            description: 'Создавайте задачи и совершенствуйтесь в их выполнении',
+        }
     };
 
     // Универсальный геттер

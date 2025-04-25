@@ -25,7 +25,7 @@ $desc__color: color(white);
   &__desc {
     color: $desc__color;
     opacity: 0.9;
-    font-size: clamp(0.8rem, 2vw, 2rem); // Минимум 2rem, идеально 5vw, максимум 4rem
+    font-size: clamp(1rem, 2vw, 2rem); // Минимум 2rem, идеально 5vw, максимум 4rem
     font-weight: bold;
     margin-bottom: 40px;
     text-transform: uppercase;
