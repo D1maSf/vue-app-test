@@ -52,42 +52,47 @@ class ArticleService {
         }
     }
 
-    async createArticle(title, content, userId, imageFile = null) {
+    async createArticle(title, content, userId, imageUrl = null) {
         try {
-            let image_url = null;
-            if (imageFile) {
-                // Используем правильный путь к изображению
-                image_url = `/images/${imageFile.filename}`;
-            }
-            
-            return await this.articleModel.create(title, content, userId, image_url);
+            return await this.articleModel.create(title, content, userId, imageUrl);
         } catch (error) {
-            if (imageFile) {
-                // Удаляем файл, если произошла ошибка
-                const imagePath = path.join('public/images', imageFile.filename);
-                await fs.unlink(imagePath).catch(console.error);
-            }
             throw new Error(`Error creating article: ${error.message}`);
         }
     }
 
     async updateArticle(id, userId, updateData) {
+        console.log(`[SERVICE] updateArticle - ID: ${id}, User ID: ${userId}`); 
+        console.log('[SERVICE] updateArticle - Data to update:', JSON.stringify(updateData, null, 2)); 
         try {
-            // Удаляем поля, которые не должны обновляться
-            const { author_name, file, image, ...allowedUpdateData } = updateData;
-            
-            if (updateData.file) {
-                // Если есть новый файл, обрабатываем его
-                const imageUrl = `/images/${updateData.file.filename}`;
-                allowedUpdateData.image_url = imageUrl;
+            const existingArticle = await this.articleModel.findById(id);
+            if (!existingArticle) {
+                console.log(`[SERVICE] updateArticle - Article with ID ${id} not found.`); 
+                return null; 
             }
-            
-            const article = await this.articleModel.update(id, userId, allowedUpdateData);
-            if (!article) {
-                throw new Error('Article not found or unauthorized');
+
+            if (Object.keys(updateData).length === 0) {
+                console.log('[SERVICE] updateArticle - No fields to update. Returning existing article.'); 
+                return existingArticle; 
             }
-            return article;
+
+            const updateArticle = async (id, data) => {
+                try {
+                    const [result] = await this.pool.query(
+                        'UPDATE articles SET title = COALESCE($1, title), content = COALESCE($2, content), image_url = COALESCE($3, image_url) WHERE id = $4 RETURNING *',
+                        [data.title, data.content, data.image_url, id]
+                    );
+                    return result.rows[0];
+                } catch (error) {
+                    console.error('Ошибка при обновлении статьи:', error);
+                    throw error;
+                }
+            };
+
+            const updatedArticle = await updateArticle(id, updateData); 
+            console.log('[SERVICE] updateArticle - Result from model.update:', JSON.stringify(updatedArticle, null, 2)); 
+            return updatedArticle; 
         } catch (error) {
+            console.error(`[SERVICE] updateArticle - Error: ${error.message}`, error.stack); 
             throw new Error(`Error updating article: ${error.message}`);
         }
     }

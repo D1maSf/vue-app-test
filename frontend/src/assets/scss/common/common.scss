@@ -26,3 +26,23 @@ main.v-main {
     padding-top: 64px;
   }
 }
+
+.hr-pixel {
+  border: 1.5px dashed black;
+  opacity: 0.1;
+  color: wheat;
+  width: 100%;
+  margin: 8px 0;
+
+  &--sm {
+    border-width: 2px;
+  }
+
+  &--xl {
+    border-width: 3px;
+  }
+
+  &--light {
+    border-color: wheat;
+  }
+}
