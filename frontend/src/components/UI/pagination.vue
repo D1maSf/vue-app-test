@@ -9,7 +9,7 @@ const props = defineProps({
 const pages = computed(() => {
   const total = props.totalPages;
   const current = props.modelValue;
-  const max = 4; // Максимум видимых страниц
+  const max = 3; // Максимум видимых страниц
 
   let start = Math.max(1, current - Math.floor(max / 2));
   let end = Math.min(total, start + max - 1);
@@ -35,7 +35,7 @@ const pages = computed(() => {
     <v-btn
         v-for="page in pages"
         :key="page"
-        :color="page === modelValue ? 'primary' : 'default'"
+        :color="page === modelValue ? 'yellow' : 'default'"
         @click="$emit('update:modelValue', page)"
         :variant="page === modelValue ? 'flat' : 'text'"
     >

@@ -22,21 +22,19 @@ const isHomePage = computed(() => route.name === 'home');
 <template>
   <div class="hero">
     <v-container>
-      <v-row>
-        <v-col cols="12">
+        <div class="hero__content">
           <h1 class="hero__headline">{{ heroText || 'Страница' }}</h1>
-          <span v-if="isAuthenticated" class="name-user name-user--xl text-no-wrap hover--yellow">{{ currentUsername }}</span>
           <p class="hero__desc">
             {{ description || 'Описание страницы' }}
           </p>
+          <div v-if="isAuthenticated" class="name-user name-user--xl text-no-wrap hover--yellow">{{ currentUsername }}</div>
           <router-link
               v-if="isHomePage"
               to="/about"
-              class="btn-pixel"
+              class="btn btn-pixel"
           >
             <span>Узнать больше о нас</span></router-link>
-        </v-col>
-      </v-row>
+        </div>
     </v-container>
   </div>
 </template>

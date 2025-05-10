@@ -10,7 +10,7 @@ const router = useRouter();
 const articlesStore = useArticlesStore();
 const dialog = ref(false);
 const isEditing = ref(false);
-const currentArticle = ref({ id: null, title: '', content: '', image: '', file: null });
+const currentArticle = ref({ id: null, title: '', content: '', image_url: '', file: null, fileName: '', imagePreview: null });
 const { changePage } = useChangePage(6);
 
 // Метод для полной очистки кэша
@@ -33,57 +33,85 @@ const openAddDialog = () => {
 };
 
 const openEditDialog = (article) => {
-  currentArticle.value = { ...article, file: null };
+  currentArticle.value = { ...article, file: null, fileName: '', imagePreview: getFullImageUrl(article.image_url) };
   isEditing.value = true;
   dialog.value = true;
 };
 
 const resetForm = () => {
-  if (currentArticle.value.image && currentArticle.value.image.startsWith('blob:')) {
-    URL.revokeObjectURL(currentArticle.value.image);
+  if (currentArticle.value.image_url && currentArticle.value.image_url.startsWith('blob:')) {
+    URL.revokeObjectURL(currentArticle.value.image_url);
   }
-  currentArticle.value = { id: null, title: '', content: '', image: '', file: null };
+  currentArticle.value = { id: null, title: '', content: '', image_url: '', file: null, fileName: '', imagePreview: null };
   isEditing.value = false;
 };
 
 const handleFileChange = (event) => {
   const file = event?.target.files[0];
   if (file) {
-    const previewUrl = URL.createObjectURL(file);
-    currentArticle.value.image = previewUrl;
     currentArticle.value.file = file;
+    currentArticle.value.fileName = file.name;
+    // Создаем предварительный URL для отображения изображения
+    currentArticle.value.image_url = URL.createObjectURL(file);
+    currentArticle.value.imagePreview = URL.createObjectURL(file);
+  } else if (isEditing.value && currentArticle.value.image_url) {
+    // Если мы в режиме редактирования и у статьи есть URL изображения,
+    // используем его для отображения
+    currentArticle.value.image_url = getFullImageUrl(currentArticle.value.image_url);
+    currentArticle.value.imagePreview = getFullImageUrl(currentArticle.value.image_url);
   }
 };
 
 const saveArticle = async () => {
   try {
     let articleData = { ...currentArticle.value };
+    console.log('[COMPONENT] saveArticle - Initial article data:', JSON.parse(JSON.stringify(articleData)));
 
     if (currentArticle.value.file) {
       const uploadResult = await articlesStore.uploadImage(currentArticle.value.file);
-      if (!uploadResult.imageUrl) {
+      console.log('[COMPONENT] saveArticle - Upload result:', JSON.parse(JSON.stringify(uploadResult)));
+      
+      if (!uploadResult.image_url) {
         throw new Error(`Ошибка загрузки изображения: ${uploadResult.error || 'Не удалось получить URL изображения'}`);
       }
-      articleData.image = uploadResult.imageUrl;
-    } else if (!articleData.image) {
+      articleData.image_url = uploadResult.image_url;
+      console.log('[COMPONENT] saveArticle - Article data after upload:', JSON.parse(JSON.stringify(articleData)));
+    } else if (!articleData.image_url && !isEditing.value) {
       throw new Error('Изображение обязательно');
     }
 
     // Сбрасываем файл после загрузки
     currentArticle.value.file = null;
 
+    // Формируем payload для отправки
+    const payload = {
+      title: articleData.title,
+      content: articleData.content,
+      image_url: articleData.image_url
+    };
+    console.log('[COMPONENT] saveArticle - Payload to send:', JSON.parse(JSON.stringify(payload)));
+
     if (isEditing.value) {
-      await articlesStore.editArticle(articleData);
+      payload.id = articleData.id;
+      await articlesStore.editArticle(payload);
+      // Обновляем список статей после успешного обновления
+      await articlesStore.loadArticles(
+        articlesStore.pagination.currentPage,
+        articlesStore.pagination.articlesPerPage
+      );
     } else {
-      await articlesStore.addArticle(articleData);
+      await articlesStore.addArticle(payload);
       // После добавления статьи загружаем первую страницу
-      await articlesStore.loadArticles(1, articlesStore.pagination.articlesPerPage);
+      await articlesStore.loadArticles(
+        1, 
+        articlesStore.pagination.articlesPerPage || 6
+      );
     }
 
     resetForm();
     dialog.value = false;
   } catch (error) {
-    console.error('Ошибка сохранения:', error);
+    console.error('[COMPONENT] saveArticle - Error:', error);
     alert('Ошибка при сохранении статьи: ' + error.message);
   }
 };
@@ -151,7 +179,13 @@ const deleteArticle = async (id) => {
         <v-card-text>
           <v-text-field v-model="currentArticle.title" label="Заголовок" required></v-text-field>
           <v-textarea v-model="currentArticle.content" label="Контент" required></v-textarea>
-          <v-text-field v-model="currentArticle.image" label="Изображение (URL)" required readonly></v-text-field>
+          <div class="mb-2">
+            <v-img v-if="currentArticle.imagePreview" :src="currentArticle.imagePreview" height="100px" class="mb-2"></v-img>
+            <div v-if="currentArticle.imagePreview" class="text-caption mb-2">
+              <span v-if="currentArticle.file">Выбрано изображение: {{ currentArticle.fileName }}</span>
+              <span v-else>Существующее изображение: {{ currentArticle.image_url.split('/').pop() }}</span>
+            </div>
+          </div>
           <v-file-input
               label="Выберите изображение"
               @change="handleFileChange"

@@ -14,6 +14,7 @@ const currentId = computed(() => Number(route.params.id));
 const article = computed(() => articlesStore.article);
 
 const canGoPrevious = computed(() => {
+
   if (!article.value || !articlesStore.articles) return false;
   
   const currentIndex = articlesStore.articles.findIndex(a => a.id === article.value.id);
@@ -35,10 +36,11 @@ const loadPageForArticle = async (id) => {
   if (!id || isNaN(id)) return;
 
   const { articlesPerPage } = articlesStore.pagination;
-  
+
   // Загружаем статьи первой страницы
-  await articlesStore.loadArticles(1, articlesPerPage);
-  
+ const resu = await articlesStore.loadArticles(1, articlesPerPage);
+  console.log(resu, "res");
+
   // Загружаем конкретную статью
   await articlesStore.loadArticleById(id);
 };
@@ -47,7 +49,7 @@ const goToPrevious = async () => {
   if (article.value && article.value.id) {
     await articlesStore.loadArticles(1, articlesStore.pagination.articlesPerPage);
     const currentIndex = articlesStore.articles.findIndex(a => a.id === article.value.id);
-    
+
     if (currentIndex > 0) {
       const previousArticle = articlesStore.articles[currentIndex - 1];
       router.push(`/blog/${previousArticle.id}`);
@@ -65,7 +67,7 @@ const goToNext = async () => {
   if (article.value && article.value.id) {
     await articlesStore.loadArticles(1, articlesStore.pagination.articlesPerPage);
     const currentIndex = articlesStore.articles.findIndex(a => a.id === article.value.id);
-    
+
     if (currentIndex < articlesStore.articles.length - 1) {
       const nextArticle = articlesStore.articles[currentIndex + 1];
       router.push(`/blog/${nextArticle.id}`);
@@ -83,6 +85,8 @@ onMounted(async () => {
   await articlesStore.loadCacheArticle();
   await loadPageForArticle(currentId.value);
   loading.value = false;
+  console.log(article, "article.value");
+  console.log(articlesStore.articles, "articlesStore.articles");
 });
 
 watch(
@@ -102,7 +106,7 @@ watch(
     <v-row justify="center" v-if="article && !loading">
       <v-col cols="12" sm="8" md="7">
         <v-card>
-          <v-card-title class="text-h4 mb-4">{{ article.title }}</v-card-title>
+          <h1 class=" mb-4">{{ article.title }}</h1>
           <v-card-subtitle class="mb-4">
             <div class="d-flex align-center">
               <v-icon icon="mdi-account" class="mr-2"></v-icon>
@@ -124,7 +128,7 @@ watch(
           />
           
           <v-card-text class="pa-1">
-            <div v-html="article.content" class="article-content"></div>
+            <p v-html="article.content" class="article-content"></p>
           </v-card-text>
           
           <v-card-actions class="d-flex justify-space-between flex-wrap">

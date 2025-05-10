@@ -3,16 +3,16 @@
   justify-content: center;
   gap: 10px;
   align-items: center;
-  background-color: wheat;
+  background-color: transparent;
   padding: 10px;
   flex-wrap: wrap;
   width: 100%;
 
   button {
     padding: 8px 16px;
-    border: none;
-    background-color: #007bff;
-    color: white;
+    border: 1px solid black;
+    background-color: color(cream);
+    color: black;
     cursor: pointer;
     border-radius: 4px;
     min-width: 40px;
@@ -23,13 +23,8 @@
       cursor: not-allowed;
     }
 
-    &.active {
-      background-color: #0056b3;
-      font-weight: bold;
-    }
-
     &:hover:not(:disabled):not(.active) {
-      background-color: #0056b3;
+      background-color: color(warning);
     }
   }
 }

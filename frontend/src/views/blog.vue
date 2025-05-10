@@ -37,15 +37,24 @@ watch(() => route.query.page, (newPage) => {
         <v-col v-for="article in articlesStore.getCurrentArticles" :key="article.id" cols="12" sm="6" lg="4">
           <v-card @click="$router.push(`/blog/${article.id}`)" class="card">
             <v-img :src="getFullImageUrl(article.image_url)" height="200px" cover></v-img>
-            <v-card-title>{{ article.title }}</v-card-title>
-            <v-card-text>Опубликовано: {{ formatDate(article.created_at) }}</v-card-text>
-            <v-card-text>Автор: {{ article.author_name }}</v-card-text>
-            <v-card-text>{{ article.content.substring(0, 100) }}...</v-card-text>
-            <v-card-actions>
-              <v-btn class="btn btn--default" @click.stop="$router.push(`/blog/${article.id}`)">
-                Читать дальше
-              </v-btn>
-            </v-card-actions>
+            <div class="pa-5">
+              <h3 class="card__headline">{{ article.title }}</h3>
+              <hr class="hr-pixel">
+              <div class="card__created">Опубликовано: {{ formatDate(article.created_at) }}</div>
+              <hr class="hr-pixel">
+              <div class="card__author">Автор: {{ article.author_name }}</div>
+              <hr class="hr-pixel">
+              <p class="card__description">{{ article.content.substring(0, 100) }}...</p>
+              <hr class="hr-pixel">
+              <div class="card__footer mt-5">
+                <v-btn class="btn btn--default" @click.stop="$router.push(`/blog/${article.id}`)">
+                  Читать дальше
+                </v-btn>
+              </div>
+            </div>
+
+
+
           </v-card>
         </v-col>
       </v-row>

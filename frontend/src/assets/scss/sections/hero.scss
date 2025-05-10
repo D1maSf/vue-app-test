@@ -12,6 +12,12 @@ $desc__color: color(white);
     padding: 50px 0;
   }
 
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
   &__headline {
     color: $headline__color;
     font-size: clamp(2rem, 5vw, 7rem); // Минимум 2rem, идеально 5vw, максимум 4rem
