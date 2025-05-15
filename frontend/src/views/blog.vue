@@ -76,10 +76,10 @@ watch(() => route.query.page, (newPage) => {
   background-size: cover;
 
   .hero {
-    @media #{$lg} {
+    @media #{$xs} {
       background-image: url("/image/hero.png");
       background-position: center;
-      background-size: cover;
+      background-size: auto;
     }
   }
 }

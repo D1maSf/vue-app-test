@@ -67,68 +67,72 @@ class ArticleController {
     };
 
     updateArticle = async (req, res, next) => {
-        console.log(`[CONTROLLER] updateArticle - ID: ${req.params.id}, User ID: ${req.user.id}`); // Лог Б1
-        console.log('[CONTROLLER] updateArticle - Request body:', JSON.stringify(req.body, null, 2)); // Лог Б2
+        console.log(`[CONTROLLER] updateArticle - ID: ${req.params.id}, User ID: ${req.user.id}`);
+        console.log('Полный req.body:', req.body);
+console.log('Файл в запросе:', req.file);
         try {
             const { id } = req.params;
             const { title, content } = req.body;
-            let imageUrl = req.body.image_url; // Получаем текущий URL изображения
-
-              // Если загружено новое изображение
-        if (req.file) {
-            // Удаляем старое изображение, если оно есть
-            if (imageUrl && imageUrl.startsWith('/images/')) {
-                const fileName = imageUrl.split('/').pop();
-                // Используем process.cwd() для получения корневой директории проекта
-                const oldImagePath = path.join(process.cwd(), 'public', 'images', fileName);
-                
-                try {
-                    const fileExists = await fs.access(oldImagePath).then(() => true).catch(() => false);
-                    if (fileExists) {
-                        await fs.unlink(oldImagePath);
-                        console.log(`Старое изображение удалено: ${oldImagePath}`);
-                    } else {
-                        console.log(`Старое изображение не найдено: ${oldImagePath}`);
+            let imageUrl = req.body.image_url;
+    
+            // Если загружено новое изображение
+            if (req.file) {
+                // Удаляем старое изображение, если оно есть и не является дефолтным
+                if (imageUrl && imageUrl.startsWith('/images/') && !imageUrl.includes('default')) {
+                    try {
+                        const fileName = path.basename(imageUrl); // Безопасное получение имени файла
+                        const oldImagePath = path.join(__dirname, '..', 'public', 'images', fileName);
+                        
+                        // Проверка существования файла
+                        try {
+                            await fs.promises.access(oldImagePath);
+                            
+                            // Дополнительная проверка, что это действительно файл изображения
+                            const stats = await fs.promises.stat(oldImagePath);
+                            if (stats.isFile()) {
+                                await fs.promises.unlink(oldImagePath);
+                                console.log(`Старое изображение успешно удалено: ${oldImagePath}`);
+                            } else {
+                                console.warn(`Указанный путь не является файлом: ${oldImagePath}`);
+                            }
+                        } catch (accessError) {
+                            console.warn(`Файл не найден, удаление не требуется: ${oldImagePath}`);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка при удалении старого изображения:', error);
+                        // Не прерываем выполнение, но логируем ошибку
                     }
-                } catch (error) {
-                    console.error('Ошибка при удалении старого изображения:', error);
                 }
+    
+                // Сохраняем новое изображение
+                imageUrl = `/images/${req.file.filename}`;
             }
-
-            // Сохраняем новое изображение
-            imageUrl = `/images/${req.file.filename}`;
-        }
-
+    
+            // Подготовка данных для обновления
             const updateData = {};
             if (title !== undefined) updateData.title = title;
             if (content !== undefined) updateData.content = content;
             if (imageUrl !== undefined) updateData.image_url = imageUrl;
-
-            console.log('[CONTROLLER] updateArticle - Data to update (updateData):', JSON.stringify(updateData, null, 2)); // Лог Б3
-
-            if (Object.keys(updateData).length === 0) {
-                console.log('[CONTROLLER] updateArticle - No data to update, returning original article or 400.');
-            }
-
-            const article = await this.articleService.updateArticle(
-                req.params.id,
-                req.user.id,
-                updateData
-            );
-            console.log('[CONTROLLER] updateArticle - Article from service:', JSON.stringify(article, null, 2)); // Лог Б4
+    
+            console.log('[CONTROLLER] updateArticle - Data to update:', JSON.stringify(updateData, null, 2));
+    
+            // Обновление статьи
+            const article = await this.articleService.updateArticle(id, req.user.id, updateData);
             
             if (!article) {
-                console.error('[CONTROLLER] updateArticle - Service returned no article (null or undefined).');
+                console.error('[CONTROLLER] updateArticle - Service returned no article');
+                return res.status(404).json({ error: 'Article not found' });
             }
-
+    
+            // Подготовка метаданных для ответа
             const total = await this.articleService.getCount();
-            const perPage = req.query.per_page ? parseInt(req.query.per_page) : 6; 
+            const perPage = parseInt(req.query.per_page) || 6;
             const totalPages = Math.ceil(total / perPage);
-            const currentPage = req.query.page ? parseInt(req.query.page) : 1; 
-            console.log('[CONTROLLER] updateArticle - Sending response back to client.'); // Лог Б5
+            const currentPage = parseInt(req.query.page) || 1;
+    
             res.json({
                 data: { 
-                    data: article, 
+                    article, 
                     meta: { 
                         total,
                         total_pages: totalPages,
@@ -138,7 +142,7 @@ class ArticleController {
                 }
             });
         } catch (error) {
-            console.error('[CONTROLLER] updateArticle - Error:', error.message, error.stack); // Лог Б6
+            console.error('[CONTROLLER] updateArticle - Error:', error);
             next(error);
         }
     };

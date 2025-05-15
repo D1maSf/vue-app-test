@@ -195,7 +195,7 @@ const deleteArticle = async (id) => {
         <v-card-actions>
           <v-btn @click="dialog = false" color="grey">Закрыть</v-btn>
           <v-btn @click="saveArticle" color="primary" :disabled="articlesStore.loading">
-            {{ isEditing ? 'Сохранить изменения' : 'Сохранить' }}
+            {{ isEditing ? 'Сохранить' : 'Сохранить' }}
           </v-btn>
         </v-card-actions>
       </v-card>

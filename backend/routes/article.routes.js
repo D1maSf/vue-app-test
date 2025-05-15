@@ -8,27 +8,25 @@ const router = express.Router();
 
 module.exports = (pool) => {
     const articleController = new ArticleController(pool);
-// Настройка multer для загрузки изображений
-const upload = multer({
-    storage: multer.diskStorage({
-        destination: function (req, file, cb) {
-            cb(null, path.join(process.cwd(), 'public', 'images'));
+    const upload = multer({
+        storage: multer.diskStorage({
+            destination: function (req, file, cb) {
+                cb(null, 'public/images');
+            },
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + path.extname(file.originalname));
+            }
+        }),
+        limits: {
+            fileSize: 5 * 1024 * 1024 // 5MB max file size
         },
-        filename: function (req, file, cb) {
-            cb(null, Date.now() + path.extname(file.originalname));
-        }
-    }),
-    limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB
-    },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
+        fileFilter: function (req, file, cb) {
+            if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+                return cb(new Error('Only image files are allowed!'));
+            }
             cb(null, true);
-        } else {
-            cb(new Error('Только изображения разрешены'));
         }
-    }
-});
+    });
 
     router.get('/', articleController.getArticles);
     router.get('/:id', articleController.getArticleById);
@@ -42,6 +40,7 @@ const upload = multer({
     router.put('/:id',
         authenticateToken,
         isAdmin,
+        upload.single('image'),
         articleController.updateArticle
     );
     

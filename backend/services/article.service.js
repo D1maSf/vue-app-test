@@ -74,19 +74,19 @@ class ArticleService {
                 console.log('[SERVICE] updateArticle - No fields to update. Returning existing article.'); 
                 return existingArticle; 
             }
-
+            
             const updateArticle = async (id, data) => {
                 try {
-                    const [result] = await this.pool.query(
-                        'UPDATE articles SET title = COALESCE($1, title), content = COALESCE($2, content), image_url = COALESCE($3, image_url) WHERE id = $4 RETURNING *',
-                        [data.title, data.content, data.image_url, id]
-                    );
-                    return result.rows[0];
+                  const { rows } = await this.pool.query(
+                    'UPDATE articles SET title = COALESCE($1, title), content = COALESCE($2, content), image_url = COALESCE($3, image_url) WHERE id = $4 RETURNING *',
+                    [data.title, data.content, data.image_url, id]
+                  );
+                  return rows[0]; // Возвращаем обновлённую статью
                 } catch (error) {
-                    console.error('Ошибка при обновлении статьи:', error);
-                    throw error;
+                  console.error('Ошибка при обновлении статьи:', error);
+                  throw error;
                 }
-            };
+              };
 
             const updatedArticle = await updateArticle(id, updateData); 
             console.log('[SERVICE] updateArticle - Result from model.update:', JSON.stringify(updatedArticle, null, 2)); 
