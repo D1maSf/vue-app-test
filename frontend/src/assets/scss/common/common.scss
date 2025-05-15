@@ -18,15 +18,6 @@ body {
   letter-spacing: 2px;
 }
 
-main.v-main {
-  padding-top: 117px;
-  height: 100%;
-
-  @media #{$md} {
-    padding-top: 64px;
-  }
-}
-
 .hr-pixel {
   border: 1.5px dashed black;
   opacity: 0.1;
