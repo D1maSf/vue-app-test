@@ -46,76 +46,85 @@ const resetForm = () => {
   isEditing.value = false;
 };
 
-const handleFileChange = (event) => {
-  const file = event?.target.files[0];
-  if (file) {
-    currentArticle.value.file = file;
-    currentArticle.value.fileName = file.name;
-    // Создаем предварительный URL для отображения изображения
-    currentArticle.value.image_url = URL.createObjectURL(file);
-    currentArticle.value.imagePreview = URL.createObjectURL(file);
-  } else if (isEditing.value && currentArticle.value.image_url) {
-    // Если мы в режиме редактирования и у статьи есть URL изображения,
-    // используем его для отображения
-    currentArticle.value.image_url = getFullImageUrl(currentArticle.value.image_url);
-    currentArticle.value.imagePreview = getFullImageUrl(currentArticle.value.image_url);
+const handleFileChange = (file) => {
+  console.log('[COMPONENT] handleFileChange - Input:', file);
+  let selectedFile = file;
+  if (Array.isArray(file)) {
+    selectedFile = file[0];
+  } else if (file && !(file instanceof File)) {
+    selectedFile = file?.file || null; // Vuetify может отправлять { file: File }
+  }
+  if (selectedFile instanceof File) {
+    currentArticle.value.file = selectedFile;
+    currentArticle.value.fileName = selectedFile.name;
+    currentArticle.value.imagePreview = URL.createObjectURL(selectedFile);
+    currentArticle.value.image_url = null;
+    console.log('[COMPONENT] handleFileChange - File selected:', {
+      name: selectedFile.name,
+      size: selectedFile.size,
+      type: selectedFile.type
+    });
+  } else {
+    console.warn('[COMPONENT] handleFileChange - Invalid file:', selectedFile);
+    currentArticle.value.file = null;
+    currentArticle.value.fileName = '';
+    currentArticle.value.imagePreview = isEditing.value ? getFullImageUrl(currentArticle.value.image_url) : null;
+    if (!isEditing.value) {
+      currentArticle.value.image_url = null;
+    }
   }
 };
 
 const saveArticle = async () => {
   try {
     let articleData = { ...currentArticle.value };
-    console.log('[COMPONENT] saveArticle - Initial article data:', JSON.parse(JSON.stringify(articleData)));
+    console.log('[COMPONENT] saveArticle - Initial article data:', {
+      title: articleData.title,
+      content: articleData.content,
+      image_url: articleData.image_url,
+      file: articleData.file ? { name: articleData.file.name, size: articleData.file.size, type: articleData.file.type } : null,
+      imagePreview: articleData.imagePreview
+    });
 
-    if (currentArticle.value.file) {
-      const uploadResult = await articlesStore.uploadImage(currentArticle.value.file);
-      console.log('[COMPONENT] saveArticle - Upload result:', JSON.parse(JSON.stringify(uploadResult)));
-      
-      if (!uploadResult.image_url) {
-        throw new Error(`Ошибка загрузки изображения: ${uploadResult.error || 'Не удалось получить URL изображения'}`);
-      }
-      articleData.image_url = uploadResult.image_url;
-      console.log('[COMPONENT] saveArticle - Article data after upload:', JSON.parse(JSON.stringify(articleData)));
-    } else if (!articleData.image_url && !isEditing.value) {
-      throw new Error('Изображение обязательно');
+    if (!articleData.title || !articleData.content) {
+      throw new Error('Заголовок и контент обязательны');
+    }
+    if (!articleData.file && !articleData.image_url && !isEditing.value) {
+      throw new Error('Изображение обязательно для новой статьи');
     }
 
-    // Сбрасываем файл после загрузки
-    currentArticle.value.file = null;
-
-    // Формируем payload для отправки
     const payload = {
       title: articleData.title,
       content: articleData.content,
-      image_url: articleData.image_url
+      image_url: articleData.file ? null : articleData.image_url,
+      file: articleData.file
     };
-    console.log('[COMPONENT] saveArticle - Payload to send:', JSON.parse(JSON.stringify(payload)));
+    console.log('[COMPONENT] saveArticle - Payload to send:', {
+      title: payload.title,
+      content: payload.content,
+      image_url: payload.image_url,
+      file: payload.file ? { name: payload.file.name, size: payload.file.size, type: payload.file.type } : null
+    });
 
     if (isEditing.value) {
       payload.id = articleData.id;
       await articlesStore.editArticle(payload);
-      // Обновляем список статей после успешного обновления
       await articlesStore.loadArticles(
-        articlesStore.pagination.currentPage,
-        articlesStore.pagination.articlesPerPage
+          articlesStore.pagination.currentPage,
+          articlesStore.pagination.articlesPerPage
       );
     } else {
       await articlesStore.addArticle(payload);
-      // После добавления статьи загружаем первую страницу
-      await articlesStore.loadArticles(
-        1, 
-        articlesStore.pagination.articlesPerPage || 6
-      );
+      await articlesStore.loadArticles(1, articlesStore.pagination.articlesPerPage || 6);
     }
 
     resetForm();
     dialog.value = false;
   } catch (error) {
-    console.error('[COMPONENT] saveArticle - Error:', error);
-    alert('Ошибка при сохранении статьи: ' + error.message);
+    console.error('[COMPONENT] saveArticle - Error:', error.response?.data || error.message);
+    alert('Ошибка при сохранении статьи: ' + (error.response?.data?.error || error.message));
   }
 };
-
 const deleteArticle = async (id) => {
   try {
     await articlesStore.deleteArticle(id);
@@ -147,7 +156,7 @@ const deleteArticle = async (id) => {
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card-title>{{ article.title }}</v-card-title>
-                <v-card-text>{{ article.content.substring(0, 50) }}...</v-card-text>
+                <v-card-text>{{ article.content }}...</v-card-text>
                 <v-card-text>Опубликовано: {{ formatDate(article.created_at) }}</v-card-text>
                 <v-card-text>Автор: {{ article.author_name }}</v-card-text>
                 <v-card-actions>
@@ -188,8 +197,9 @@ const deleteArticle = async (id) => {
           </div>
           <v-file-input
               label="Выберите изображение"
-              @change="handleFileChange"
-              accept="image/*"
+              :model-value="currentArticle.file"
+              accept="image/jpeg,image/png"
+              @update:model-value="handleFileChange"
           />
         </v-card-text>
         <v-card-actions>

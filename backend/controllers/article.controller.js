@@ -4,6 +4,7 @@ const path = require('path');
 
 class ArticleController {
     constructor(pool) {
+        this.pool = pool;
         this.articleService = new ArticleService(pool);
     }
 
@@ -48,101 +49,107 @@ class ArticleController {
     };
 
     createArticle = async (req, res, next) => {
+        console.log(`[CONTROLLER] createArticle - User ID: ${req.user?.id}`);
+        console.log('req.headers:', {
+            contentType: req.headers['content-type'],
+            authorization: req.headers.authorization
+        });
+        console.log('req.body:', req.body);
+        console.log('req.file:', req.file ? { filename: req.file.filename, size: req.file.size, mimetype: req.file.mimetype } : 'No file');
         try {
-            console.log('--- createArticle req.body ---:', req.body); // Строка для отладки
-            const { title, content, image_url } = req.body; 
-            const userId = req.user.id;
+            const { title, content, image_url: newImageUrl } = req.body;
+            let imageUrl = newImageUrl;
 
-            const article = await this.articleService.createArticle(
-                title,
-                content,
-                userId,
-                image_url 
-            );
+            if (!title || !content) {
+                console.error('[CONTROLLER] createArticle - Заголовок и контент обязательны');
+                return res.status(400).json({ error: 'Заголовок и контент обязательны' });
+            }
 
-            res.status(201).json(article);
+            if (req.file) {
+                imageUrl = `/images/${req.file.filename}`;
+                console.log('[CONTROLLER] createArticle - Новый файл загружен:', imageUrl);
+            } else if (!imageUrl) {
+                console.error('[CONTROLLER] createArticle - Изображение или image_url обязательны');
+                return res.status(400).json({ error: 'Изображение или image_url обязательны' });
+            }
+
+            console.log('[CONTROLLER] createArticle - Данные для создания:', { title, content, image_url: imageUrl });
+
+            // Исправляем вызов create
+            const article = await this.articleService.createArticle(title, content, req.user?.id, imageUrl);
+            if (!article) {
+                console.error('[CONTROLLER] createArticle - Creation failed');
+                return res.status(400).json({ error: 'Не удалось создать статью' });
+            }
+
+            console.log('[CONTROLLER] createArticle - Статья создана:', article);
+            res.status(201).json({ data: { article } });
         } catch (error) {
+            console.error('[CONTROLLER] createArticle - Error:', error.message, error.stack);
             next(error);
         }
     };
 
     updateArticle = async (req, res, next) => {
-        console.log(`[CONTROLLER] updateArticle - ID: ${req.params.id}, User ID: ${req.user.id}`);
-        console.log('Полный req.body:', req.body);
-console.log('Файл в запросе:', req.file);
+        console.log(`[CONTROLLER] updateArticle - Article ID: ${req.params.id}, User ID: ${req.user?.id}`);
+        console.log('req.headers:', {
+            contentType: req.headers['content-type'],
+            authorization: req.headers.authorization
+        });
+        console.log('req.body:', req.body);
+        console.log('req.file:', req.file ? { filename: req.file.filename, size: req.file.size, mimetype: req.file.mimetype } : 'No file');
         try {
             const { id } = req.params;
-            const { title, content } = req.body;
-            let imageUrl = req.body.image_url;
-    
-            // Если загружено новое изображение
+            const { title, content, image_url: newImageUrl } = req.body;
+            let imageUrl = newImageUrl;
+
+            if (!title || !content) {
+                console.error('[CONTROLLER] updateArticle - Заголовок и контент обязательны');
+                return res.status(400).json({ error: 'Заголовок и контент обязательны' });
+            }
+
+            // Получаем текущую статью для oldImagePath
+            const currentArticleQuery = await this.pool.query('SELECT image_url FROM articles WHERE id = $1', [id]);
+            if (!currentArticleQuery.rows.length) {
+                console.error('[CONTROLLER] updateArticle - Статья не найдена');
+                return res.status(404).json({ error: 'Статья не найдена' });
+            }
+            const oldImagePath = currentArticleQuery.rows[0].image_url;
+            console.log('[CONTROLLER] updateArticle - Old image path:', oldImagePath);
+
             if (req.file) {
-                // Удаляем старое изображение, если оно есть и не является дефолтным
-                if (imageUrl && imageUrl.startsWith('/images/') && !imageUrl.includes('default')) {
-                    try {
-                        const fileName = path.basename(imageUrl); // Безопасное получение имени файла
-                        const oldImagePath = path.join(__dirname, '..', 'public', 'images', fileName);
-                        
-                        // Проверка существования файла
-                        try {
-                            await fs.promises.access(oldImagePath);
-                            
-                            // Дополнительная проверка, что это действительно файл изображения
-                            const stats = await fs.promises.stat(oldImagePath);
-                            if (stats.isFile()) {
-                                await fs.promises.unlink(oldImagePath);
-                                console.log(`Старое изображение успешно удалено: ${oldImagePath}`);
-                            } else {
-                                console.warn(`Указанный путь не является файлом: ${oldImagePath}`);
-                            }
-                        } catch (accessError) {
-                            console.warn(`Файл не найден, удаление не требуется: ${oldImagePath}`);
-                        }
-                    } catch (error) {
-                        console.error('Ошибка при удалении старого изображения:', error);
-                        // Не прерываем выполнение, но логируем ошибку
-                    }
-                }
-    
-                // Сохраняем новое изображение
                 imageUrl = `/images/${req.file.filename}`;
-            }
-    
-            // Подготовка данных для обновления
-            const updateData = {};
-            if (title !== undefined) updateData.title = title;
-            if (content !== undefined) updateData.content = content;
-            if (imageUrl !== undefined) updateData.image_url = imageUrl;
-    
-            console.log('[CONTROLLER] updateArticle - Data to update:', JSON.stringify(updateData, null, 2));
-    
-            // Обновление статьи
-            const article = await this.articleService.updateArticle(id, req.user.id, updateData);
-            
-            if (!article) {
-                console.error('[CONTROLLER] updateArticle - Service returned no article');
-                return res.status(404).json({ error: 'Article not found' });
-            }
-    
-            // Подготовка метаданных для ответа
-            const total = await this.articleService.getCount();
-            const perPage = parseInt(req.query.per_page) || 6;
-            const totalPages = Math.ceil(total / perPage);
-            const currentPage = parseInt(req.query.page) || 1;
-    
-            res.json({
-                data: { 
-                    article, 
-                    meta: { 
-                        total,
-                        total_pages: totalPages,
-                        per_page: perPage,
-                        current_page: currentPage
+                console.log('[CONTROLLER] updateArticle - Новый файл загружен:', imageUrl);
+                // Удаляем старое изображение, если оно есть
+                if (oldImagePath) {
+                    const fullPath = path.join(__dirname, '..', 'public', oldImagePath);
+                    try {
+                        fs.unlink(fullPath);
+                        console.log('[CONTROLLER] updateArticle - Старое изображение удалено:', fullPath);
+                    } catch (err) {
+                        console.warn('[CONTROLLER] updateArticle - Не удалось удалить старое изображение:', err.message);
                     }
                 }
-            });
+            } else if (!imageUrl && !oldImagePath) {
+                console.error('[CONTROLLER] updateArticle - Изображение или image_url обязательны');
+                return res.status(400).json({ error: 'Изображение или image_url обязательны' });
+            } else if (!imageUrl) {
+                imageUrl = oldImagePath; // Сохраняем старый путь
+            }
+
+            console.log('[CONTROLLER] updateArticle - Данные для обновления:', { title, content, image_url: imageUrl });
+
+            const updateData = { title, content, image_url: imageUrl };
+            const article = await this.articleService.updateArticle(id, req.user?.id, updateData);
+            if (!article) {
+                console.error('[CONTROLLER] updateArticle - Update failed');
+                return res.status(400).json({ error: 'Не удалось обновить статью' });
+            }
+
+            console.log('[CONTROLLER] updateArticle - Статья обновлена:', article);
+            res.status(200).json({ data: { article } });
         } catch (error) {
-            console.error('[CONTROLLER] updateArticle - Error:', error);
+            console.error('[CONTROLLER] updateArticle - Error:', error.message, error.stack);
             next(error);
         }
     };

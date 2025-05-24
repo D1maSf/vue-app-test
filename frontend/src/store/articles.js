@@ -245,15 +245,14 @@ export const useArticlesStore = defineStore('articles', {
             }
         },
 
-        async uploadImage(file) {
+       /* async uploadImage(file) {
             try {
                 const formData = new FormData();
                 formData.append('image', file);
 
                 const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/articles/upload`, formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data'
-                    },
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,                    },
                     onUploadProgress: (progressEvent) => {
                         this.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                     }
@@ -274,48 +273,82 @@ export const useArticlesStore = defineStore('articles', {
                 throw new Error(`Ошибка загрузки изображения: ${error.message}`);
             }
         },
-
+*/
         async addArticle(articleData) {
             this.loading = true;
             this.error = null;
             try {
-                console.log('[STORE] addArticle - Article data received:', JSON.parse(JSON.stringify(articleData)));
-                
-                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/articles`, {
+                console.log('[STORE] addArticle - Article data received:', {
                     title: articleData.title,
                     content: articleData.content,
-                    image_url: articleData.image_url
+                    image_url: articleData.image_url,
+                    file: articleData.file ? { name: articleData.file.name, size: articleData.file.size, type: articleData.file.type } : null
                 });
-                
+
+                if (!articleData.title || !articleData.content) {
+                    throw new Error('Заголовок и контент обязательны');
+                }
+                if (!articleData.file && !articleData.image_url) {
+                    throw new Error('Изображение или image_url обязательны');
+                }
+                if (articleData.file && !(articleData.file instanceof File)) {
+                    throw new Error('Файл изображения невалиден');
+                }
+
+                const formData = new FormData();
+                formData.append('title', articleData.title || '');
+                formData.append('content', articleData.content || '');
+                if (articleData.file) {
+                    formData.append('image', articleData.file);
+                    console.log('[STORE] addArticle - File added to FormData:', {
+                        name: articleData.file.name,
+                        size: articleData.file.size,
+                        type: articleData.file.type
+                    });
+                } else if (articleData.image_url) {
+                    formData.append('image_url', articleData.image_url);
+                }
+
+                console.log('[STORE] addArticle - FormData payload:', [...formData.entries()]);
+                console.log('[STORE] addArticle - Token:', localStorage.getItem('token'));
+
+                const config = {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    },
+                    onUploadProgress: (progressEvent) => {
+                        console.log('[STORE] addArticle - Upload progress:', Math.round((progressEvent.loaded * 100) / progressEvent.total));
+                    }
+                };
+
+                console.log('[STORE] addArticle - Axios config:', config);
+
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/articles`, formData, config);
+
                 console.log('[STORE] addArticle - Response from server:', JSON.parse(JSON.stringify(response.data)));
-                
-                const newArticle = response.data;
+
+                const newArticle = response.data.data.article;
+
                 console.log('[STORE] addArticle - New article:', JSON.parse(JSON.stringify(newArticle)));
 
-                // Обновляем кэш ПЕРЕД обновлением this.articles
-                const cacheKeyCurrentPage = `${this.pagination.articlesPerPage}_1`; 
-
+                // Обновляем кэш
+                const cacheKeyCurrentPage = `${this.pagination.articlesPerPage}_1`;
                 if (!this.pages[cacheKeyCurrentPage]) {
-                    this.pages[cacheKeyCurrentPage] = { data: { data: [] }, meta: {} }; 
+                    this.pages[cacheKeyCurrentPage] = { data: { data: [] }, meta: {} };
                 }
-                // Добавляем статью в начало кэшированного массива data.data первой страницы
                 this.pages[cacheKeyCurrentPage].data.data.unshift(newArticle);
 
-                // Если текущая страница - первая, обновляем this.articles из обновленного кэша (создавая копию)
                 if (this.pagination.currentPage === 1) {
                     this.articles = [...this.pages[cacheKeyCurrentPage].data.data];
                 }
 
-                // Обновляем пагинацию
                 this.pagination.totalArticles += 1;
-                // Обновляем и meta в кэше, если он существует для первой страницы
-                if(this.pages[cacheKeyCurrentPage] && this.pages[cacheKeyCurrentPage].meta) {
+                if (this.pages[cacheKeyCurrentPage] && this.pages[cacheKeyCurrentPage].meta) {
                     this.pages[cacheKeyCurrentPage].meta.total = (this.pages[cacheKeyCurrentPage].meta.total || 0) + 1;
                     this.pages[cacheKeyCurrentPage].meta.total_pages = Math.ceil(this.pages[cacheKeyCurrentPage].meta.total / this.pagination.articlesPerPage);
                 }
                 this.pagination.totalPages = Math.ceil(this.pagination.totalArticles / this.pagination.articlesPerPage);
 
-                // Сохраняем обновленный кэш
                 localStorage.setItem('articles_pages', JSON.stringify(this.pages));
                 localStorage.setItem('cachedPagination', JSON.stringify(this.pagination));
 
@@ -326,8 +359,8 @@ export const useArticlesStore = defineStore('articles', {
 
                 return newArticle;
             } catch (error) {
-                this.error = 'Ошибка добавления статьи: ' + error.message;
-                console.error('[STORE] addArticle - Error:', error);
+                this.error = 'Ошибка добавления статьи: ' + (error.response?.data?.error || error.message);
+                console.error('[STORE] addArticle - Error:', error.response?.data || error.message);
                 throw error;
             } finally {
                 this.loading = false;
@@ -336,37 +369,40 @@ export const useArticlesStore = defineStore('articles', {
 
         async editArticle(article) {
             this.loading = true;
-            console.log('[STORE] editArticle - article received:', JSON.parse(JSON.stringify(article))); // Лог 1
+            console.log('[STORE] editArticle - article received:', JSON.parse(JSON.stringify(article)));
             try {
-                console.log(`[STORE] editArticle - Sending PUT request to /articles/${article.id} with payload:`, JSON.parse(JSON.stringify(article))); // Лог 2
-                
-                // Формируем payload для отправки
-                const payloadData = {
-                    title: article.title,
-                    content: article.content,
-                    image_url: article.image_url
-                };
+                console.log(`[STORE] editArticle - Preparing PUT request to /articles/${article.id}`);
 
-                const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/articles/${article.id}`, payloadData, {
+                const formData = new FormData();
+                formData.append('title', article.title);
+                formData.append('content', article.content);
+                if (article.image_url) {
+                    formData.append('image_url', article.image_url);
+                }
+                if (article.file) {
+                    formData.append('image', article.file);
+                }
+
+                console.log('[STORE] editArticle - FormData payload:', [...formData.entries()]);
+
+                const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/articles/${article.id}`, formData, {
                     headers: {
-                        'Content-Type': 'application/json'
-                    }
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        // Не указываем 'Content-Type', axios установит 'multipart/form-data' автоматически
+                    },
                 });
-                
-                console.log('[STORE] editArticle - Response from server:', JSON.parse(JSON.stringify(response))); // Лог 3
 
-                const updatedArticle = response.data;
-                console.log('[STORE] editArticle - Updated article from response:', JSON.parse(JSON.stringify(updatedArticle))); // Лог 4
+                console.log('[STORE] editArticle - Response from server:', JSON.parse(JSON.stringify(response)));
 
-                // Очищаем кэш текущей страницы
+                const updatedArticle = response.data.data.article;
+                console.log('[STORE] editArticle - Updated article from response:', JSON.parse(JSON.stringify(updatedArticle)));
+
                 this.clearPageCache(this.pagination.currentPage, this.pagination.articlesPerPage);
-
-                // Загружаем обновленные данные
                 await this.loadArticles(this.pagination.currentPage, this.pagination.articlesPerPage);
 
                 return updatedArticle;
             } catch (error) {
-                console.error('[STORE] editArticle - Error:', error);
+                console.error('[STORE] editArticle - Error:', error.response?.data || error.message);
                 throw error;
             } finally {
                 this.loading = false;

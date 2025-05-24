@@ -44,7 +44,7 @@ watch(() => route.query.page, (newPage) => {
               <hr class="hr-pixel">
               <div class="card__author">Автор: {{ article.author_name }}</div>
               <hr class="hr-pixel">
-              <p class="card__description">{{ article.content.substring(0, 100) }}...</p>
+              <p class="card__description">{{ article.content }}...</p>
               <hr class="hr-pixel">
               <div class="card__footer mt-5">
                 <v-btn class="btn btn--default" @click.stop="$router.push(`/blog/${article.id}`)">

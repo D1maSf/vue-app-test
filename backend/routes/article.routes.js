@@ -34,6 +34,7 @@ module.exports = (pool) => {
     router.post('/',
         authenticateToken,
         isAdmin,
+        upload.single('image'),
         articleController.createArticle
     );
     
@@ -50,12 +51,12 @@ module.exports = (pool) => {
         articleController.deleteArticle
     );
 
-    router.post('/upload',
+ /*   router.post('/upload',
         authenticateToken,
         isAdmin,
         upload.single('image'),
         articleController.uploadImage
     );
-
+*/
     return router;
 };

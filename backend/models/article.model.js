@@ -63,23 +63,39 @@ class ArticleModel {
 
     // Обновление статьи
     async update(id, userId, updateData) {
-        console.log(`[MODEL] update - ID: ${id}, User ID: ${userId}`); // Лог M1
-        console.log('[MODEL] update - Data to update:', JSON.stringify(updateData, null, 2)); // Лог M2
+        console.log(`[MODEL] update - ID: ${id}, User ID: ${userId}`);
+        console.log('[MODEL] update - Data to update:', JSON.stringify(updateData, null, 2));
 
-        if (Object.keys(updateData).length === 0) {
-            console.log('[MODEL] update - No data to update, returning existing article.'); // Лог M2.1
-            return null; // Если updateData пуст, ничего не делаем, пусть сервис решает.
+        if (!updateData || Object.keys(updateData).length === 0) {
+            console.log('[MODEL] update - No data to update, returning null.');
+            return null;
+        }
+
+        if (!Number.isInteger(userId)) {
+            console.error('[MODEL] update - Invalid userId:', userId);
+            throw new Error('Invalid userId: must be an integer');
         }
 
         try {
-            const [result] = await this.pool.query(
-                'UPDATE articles SET title = COALESCE($1, title), content = COALESCE($2, content), image_url = COALESCE($3, image_url), updated_at = CURRENT_TIMESTAMP WHERE id = $4 AND author_id = $5 RETURNING *',
-                [updateData.title, updateData.content, updateData.image_url, id, userId]
-            );
-            console.log('[MODEL] update - Rows returned from DB:', JSON.stringify(result.rows, null, 2)); // Лог M6
-            return result.rows[0];
+            const query = {
+                text: `
+                    UPDATE articles
+                    SET title = COALESCE($1, title),
+                        content = COALESCE($2, content),
+                        image_url = COALESCE($3, image_url),
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $4 AND author_id = $5
+                    RETURNING *
+                `,
+                values: [updateData.title, updateData.content, updateData.image_url, id, userId],
+            };
+            console.log('[MODEL] update - SQL query:', query.text);
+            console.log('[MODEL] update - SQL values:', query.values);
+            const result = await this.pool.query(query);
+            console.log('[MODEL] update - Rows returned from DB:', JSON.stringify(result.rows, null, 2));
+            return result.rows[0] || null; // Возвращаем первую строку или null
         } catch (error) {
-            console.error('[MODEL] update - Database error:', error.message, error.stack); // Лог M8
+            console.error('[MODEL] update - Database error:', error.message, error.stack);
             throw new Error(`Error updating article: ${error.message}`);
         }
     }
