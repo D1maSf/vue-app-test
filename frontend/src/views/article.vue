@@ -162,6 +162,11 @@ watch(
 </template>
 
 <style lang="scss">
+.article {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("/image/X9PvihJXUDNmsaJpAPJD--0--6soyy.webp");
+  background-position: center;
+  background-size: cover;
+}
 .article-content {
   :deep(p) {
     margin-bottom: 1rem;

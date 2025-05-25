@@ -1,9 +1,11 @@
-$background-color: color(dark);
-$info__background-color: color(cream);
+$background-color: rgba(50, 49, 54, 0.8509803922);
+$info__background-color: color(white);
 
 .footer {
   background-color: $background-color;
-  color: color(cream);
+  color: color(white);
+  margin-top: auto;
+  width: 100%;
 
   .v-toolbar {
     &-items {
@@ -24,6 +26,7 @@ $info__background-color: color(cream);
     display: flex;
     justify-content: space-between;
     padding-left: 15px;
+    margin-top: 10px;
   }
 
   &__divider  {

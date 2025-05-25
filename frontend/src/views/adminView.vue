@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useArticlesStore } from '@/store/articles';
 import {formatDate, getFullImageUrl, BASE_URL, useChangePage} from '@/utils/common';
 import {useRoute, useRouter} from 'vue-router';
@@ -24,6 +24,7 @@ const clearAllCache = () => {
 onMounted(() => {
     // Загружаем статьи
     const page = parseInt(route.query.page) || 1;
+
     articlesStore.loadArticles(page, 6); // Загружаем статьи для текущей страницы
 });
 
@@ -134,7 +135,6 @@ const deleteArticle = async (id) => {
   }
 };
 
-// Обработчик для очистки кэша
 </script>
 
 <template>
@@ -167,14 +167,13 @@ const deleteArticle = async (id) => {
             </v-row>
           </v-card>
         </v-col>
-        
-        <!-- Пагинация -->
-        <Pagination
-            :totalPages="articlesStore.pagination.totalPages"
-            :modelValue="articlesStore.pagination.currentPage"
-            @update:modelValue="changePage"
-        />
       </v-row>
+      <!-- Пагинация -->
+      <Pagination
+          :totalPages="articlesStore.pagination.totalPages"
+          :modelValue="articlesStore.pagination.currentPage"
+          @update:modelValue="changePage"
+      />
     </div>
     <div v-else class="text-center">
       <v-alert type="info">Нет статей</v-alert>
@@ -215,7 +214,7 @@ const deleteArticle = async (id) => {
 
 <style lang="scss">
 .admin {
-  background-image: url("/image/admin.jpg");
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("/image/admin.jpg");
   background-position: center;
   background-size: cover;
 

@@ -30,6 +30,7 @@ class ArticleModel {
                     SELECT a.*, u.username as author_name
                     FROM articles a
                     JOIN users u ON a.author_id = u.id
+                    WHERE a.is_published = true
                     ORDER BY a.created_at DESC
                     LIMIT $1 OFFSET $2
                 `,

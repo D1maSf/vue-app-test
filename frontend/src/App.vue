@@ -17,8 +17,8 @@ const mainClass = computed(() => {
     <Header />
     <v-main :class="mainClass">
       <router-view></router-view>
+      <Footer />
     </v-main>
-    <Footer />
   </v-app>
 </template>
 
