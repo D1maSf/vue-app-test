@@ -51,7 +51,7 @@ const toggleMenu = () => {
 const allNavLinks = computed(() => {
   const links = [...navLinks.value];
   if (authStore.user?.is_admin) {
-    links.push({ text: 'Админ-панель', href: '/admin' });
+    links.push({  text: 'Админ-панель', class: 'admin-panel', href: '/admin' });
   }
   return links;
 });
@@ -97,7 +97,7 @@ const allNavLinks = computed(() => {
 
         <!-- Кнопки входа/выхода для десктопа -->
         <v-toolbar-items class="d-none d-lg-flex ml-4">
-          <v-btn class="py-2 btn--login" v-if="!isAuthenticated" to="/auth">Вход / Регистрация</v-btn>
+          <v-btn class="py-2 btn-login" v-if="!isAuthenticated" to="/auth">Вход/Регистрация</v-btn>
           <v-btn class="py-2 btn-logout" v-else @click="logoutHandler">Выйти</v-btn>
         </v-toolbar-items>
       </v-row>
@@ -127,7 +127,7 @@ const allNavLinks = computed(() => {
       <v-list-item class="btn-logout" v-else @click="logoutHandler">
         <v-list-item-title>Выйти</v-list-item-title>
       </v-list-item>
-      <div class="social-icons social-icons--pixel">
+      <div class="social-icons">
         <a
             v-for="(icon, index) in socialIcons"
             :key="index"
@@ -149,8 +149,30 @@ const allNavLinks = computed(() => {
   background-color: #323136 !important;
 
 }
+.btn-login {
+  &:hover {
+    color: white !important;
+    background-color: green !important;
+  }
+}
 
+.btn-admin {
+  background-color: red !important;
+  &:hover {
+    background-color: color(warning) !important;
+  }
+}
+
+.btn-logout {
+  &:hover {
+    color: white !important;
+    background-color: #f00 !important;
+  }
+}
 .hidden {
-  overflow: hidden !important;
+  @media #{$md} {
+    overflow: hidden !important;
+  }
+
 }
 </style>
