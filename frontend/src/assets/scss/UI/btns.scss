@@ -34,6 +34,7 @@ $color--dark: color(dark);
 
      & span {
        transform: scale(1.05);
+       display: block;
      }
    }
 
@@ -43,12 +44,9 @@ $color--dark: color(dark);
     transform: translate(0em, 0.75em);
     color: $color--white;
 
-    & span {
-      transform: scale(1.1);
-    }
-
     &::before {
-      //box-shadow: 0 0 0 2px #FFF, 0 0 #FFF;
+      left: 0;
+      box-shadow: unset;
       transform: translate3d(0, 0, -1em);
     }
 
@@ -63,9 +61,8 @@ $color--dark: color(dark);
     left: 3px;
     right: 0;
     bottom: 0;
-    background: color(transparent);
+    background: color(white);
     border-radius: inherit;
-    box-shadow: 0 3px 11px 0 #000, 0 0.425em 0 0 #c5bebe;
     transform: translate3d(0, 0.3em, -1em);
     transition: transform 0.15s, box-shadow 0.15s;
   }
@@ -105,41 +102,10 @@ $color--dark: color(dark);
       color: $color--white;
     }
   }
-}
 
-.btn-pixel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 15px;
-  background-color: #ccc; /* Серый фон */
-  border: 3px solid #000; /* Толстая черная рамка */
-  box-shadow:
-            inset 3px 3px 0 #fff, /* Блик */
-            inset -3px -3px 0 #666; /* Тень */
-  text-decoration: none;
-  color: color(dark); /* Цвет иконки */
-  font-size: 1rem; /* Размер иконки */
-  transition: transform 0.1s, box-shadow 0.1s;
-  cursor: pointer;
-  font-weight: bold;
+   &--default {
+     border: 1px solid black;
 
-  &:hover {
-    background-color: color(warning);
-    box-shadow:
-            inset 2px 2px 0 #fff, /* Уменьшенный блик */
-            inset -2px -2px 0 #666; /* Уменьшенная тень */
 
-    span {
-      transform: scale(1.03);
-    }
-  }
-
-  &:active {
-    transform: translateY(4px); /* Сильный сдвиг при клике */
-    box-shadow:
-            inset 3px 3px 0 #fff, /* Блик */
-            inset -3px -3px 0 #666; /* Тень */
-    background-color: #aaa; /* Темнее при нажатии */
-  }
+   }
 }

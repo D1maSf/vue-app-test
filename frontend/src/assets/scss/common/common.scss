@@ -31,3 +31,10 @@ main {
   width: 100%;
   margin: 8px 0;
 }
+
+.admin-panel {
+  background-color: red !important;
+  &:hover {
+    background-color: color(warning) !important;
+  }
+}
