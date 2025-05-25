@@ -26,12 +26,25 @@ const logoutHandler = () => {
 const router = useRouter();
 
 watch(() => route.fullPath, () => {
-  isBlogMobileOpen.value = false;
   isMenuOpen.value = false;
+  updateHtmlClass();
 });
 
+
+// Функция для обновления класса на <html>
+const updateHtmlClass = () => {
+  const html = document.documentElement;
+  if (isMenuOpen.value) {
+    html.classList.add('hidden');
+  } else {
+    html.classList.remove('hidden');
+  }
+};
+
+// При клике меняем состояние и обновляем класс
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
+  updateHtmlClass();
 };
 
 // Добавляем "Админ-панель" только для админа
@@ -46,7 +59,7 @@ const allNavLinks = computed(() => {
 
 <template>
 
-  <v-app-bar class="header h-auto">
+  <v-app-bar :class="{ 'bg--dark-gray': isMenuOpen }" class="header h-auto">
     <v-container>
       <v-row class="align-center">
         <a class="logo" href="">
@@ -91,25 +104,22 @@ const allNavLinks = computed(() => {
     </v-container>
     <!-- Мобильное меню -->
   </v-app-bar>
-  <v-navigation-drawer  class="nav d-lg-none" v-model="isMenuOpen" temporary app right>
+  <v-navigation-drawer  class="nav d-lg-none" v-model="isMenuOpen" temporary app right @update:modelValue="updateHtmlClass"
+                        @click:overlay="toggleMenu">
     <v-list dense>
+
       <v-list-item class="mobile"
           v-for="link in allNavLinks"
           :key="link.text"
           :to="link.href"
           @click="link.hasSubmenu ? null : (isMenuOpen = false)"
       >
-        <v-list-item-title @click="link.hasSubmenu ? toggleBlogMobileMenu() : null">
+
+        <v-list-item-title @click="link.hasSubmenu">
           {{ link.text }}
         </v-list-item-title>
-        <!-- Подменю для блога в мобильном меню -->
-        <v-list v-if="link.hasSubmenu && isBlogMobileOpen && articles.length" dense>
-          <v-list-item v-for="article in articles" :key="article.id" :to="`/blog/${article.id}`" @click="isMenuOpen = false">
-            <v-list-item-title>{{ article.title }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-list-item>
 
+      </v-list-item>
       <!-- Кнопки входа/выхода для мобильного -->
       <v-list-item class="btn-login" v-if="!isAuthenticated" to="/auth" @click="isMenuOpen = false">
         <v-list-item-title>Вход / Регистрация</v-list-item-title>
@@ -131,15 +141,16 @@ const allNavLinks = computed(() => {
       </div>
     </v-list>
   </v-navigation-drawer>
-  <div class="topbar">
-    <v-container>
-      <v-row>
-
-      </v-row>
-    </v-container>
-  </div>
-
 
 </template>
 
-<style lang="scss"></style>
+<style lang="scss">
+.bg--dark-gray {
+  background-color: #323136 !important;
+
+}
+
+.hidden {
+  overflow: hidden !important;
+}
+</style>

@@ -1,5 +1,5 @@
 import {useAuthStore} from "@/store/auth.js";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useRoute, useRouter} from 'vue-router';
 import {useArticlesStore} from '@/store/articles';
 
@@ -68,25 +68,45 @@ export function useChangePage(perPage) {
         const router = useRouter();
         const route = useRoute();
 
-        // Инициализируем кэш при монтировании
-        onMounted(async () => {
-                articlesStore.initializeCache();
+        // Загрузка данных при монтировании
+        const loadInitialData = async () => {
                 const page = parseInt(route.query.page) || 1;
                 await articlesStore.loadArticles(page, perPage);
+        };
+
+        onMounted(async () => {
+                articlesStore.initializeCache();
+                await loadInitialData();
         });
+
+        // Отслеживание изменений в query параметрах
+        watch(
+            () => route.query.page,
+            async (newPage) => {
+                    const page = parseInt(newPage) || 1;
+                    if (page !== articlesStore.pagination.currentPage) {
+                            await articlesStore.loadArticles(page, perPage);
+                    }
+            }
+        );
 
         // Обработчик смены страницы
         const changePage = async (page) => {
-                if (page < 1 || page > articlesStore.pagination.totalPages) {
+                const pageNum = parseInt(page) || 1;
+
+                if (pageNum < 1 || pageNum > articlesStore.pagination.totalPages) {
                         console.warn('Некорректный номер страницы:', page);
                         return;
                 }
-                if (page !== articlesStore.pagination.currentPage) {
+
+                if (pageNum !== articlesStore.pagination.currentPage) {
                         try {
-                                await articlesStore.loadArticles(page, perPage);
-                                router.push({ query: { page } });
+                                await articlesStore.loadArticles(pageNum, perPage);
+                                router.push({ query: { page: pageNum } });
                         } catch (error) {
                                 console.error('Ошибка при загрузке страницы:', error);
+                                // Можно добавить уведомление пользователю
+                                // alert('Не удалось загрузить страницу');
                         }
                 }
         };

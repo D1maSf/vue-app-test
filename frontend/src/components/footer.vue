@@ -17,7 +17,7 @@ const { isAuthenticated, currentUsername } = useAuth();
             {{ link.text }}
           </v-btn>
         </v-toolbar-items>
-        <hr class="hr-pixel hr-pixel--xl hr-pixel--light d-md-none">
+        <hr class="hr-pixel d-sm-none">
           <div class="social-icons social-icons--pixel">
             <a
                 v-for="(icon, index) in socialIcons"
@@ -30,7 +30,7 @@ const { isAuthenticated, currentUsername } = useAuth();
             >
             </a>
           </div>
-        <hr class="hr-pixel hr-pixel--xl hr-pixel--light">
+        <hr class="hr-pixel">
 
         <div class="footer__desc">
           Phasellus feugiat arcu sapien, et iaculis ipsum elementum sit amet.
@@ -39,7 +39,7 @@ const { isAuthenticated, currentUsername } = useAuth();
           Morbi vehicula lacinia malesuada. Nulla placerat augue vel ipsum ultrices, cursus iaculis dui sollicitudin.
           Vestibulum eu ipsum vel diam elementum tempor vel ut orci. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
         </div>
-        <hr class="hr-pixel hr-pixel--xl hr-pixel--light">
+        <hr class="hr-pixel">
         <div class="footer__info text-center w-100 rounded-lg">
           Все права защищены {{ new Date().getFullYear() }}г.  <div v-if="isAuthenticated" class="name-user text-capitalize">/{{ currentUsername }}
 

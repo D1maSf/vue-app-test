@@ -121,16 +121,17 @@ export const useArticlesStore = defineStore('articles', {
 
         async loadArticles(page = 1, perPage = 6) {
             const cacheKey = `${perPage}_${page}`;
-            
+            console.log('Fetching articles with params:', { page, per_page: perPage });
+
             // Проверяем кэш для страницы
             if (this.pages[cacheKey]) {
                 // Обновляем данные из кэша, создавая копию
-                this.articles = [...this.pages[cacheKey].data.data]; 
+                this.articles = [...this.pages[cacheKey].data.data];
                 this.pagination.currentPage = page;
                 this.pagination.totalArticles = this.pages[cacheKey].meta.total;
                 this.pagination.totalPages = this.pages[cacheKey].meta.total_pages;
                 this.pagination.articlesPerPage = this.pages[cacheKey].meta.per_page;
-                
+
                 return this.articles;
             }
 
@@ -150,20 +151,20 @@ export const useArticlesStore = defineStore('articles', {
                 }
 
                 // Сохраняем статьи в состоянии, создавая копию
-                this.articles = [...response.data.data.data];
+                this.articles = [...response.data.data];
 
                 // Обновляем пагинацию
                 this.pagination = {
-                    currentPage: response.data.data.meta.current_page || 1,
-                    totalPages: response.data.data.meta.total_pages || 1,
-                    totalArticles: response.data.data.meta.total || 0,
-                    articlesPerPage: response.data.data.meta.per_page || perPage,
+                    currentPage: response.data.meta.current_page || 1,
+                    totalPages: response.data.meta.total_pages || 1,
+                    totalArticles: response.data.meta.total || 0,
+                    articlesPerPage: response.data.meta.per_page || perPage,
                 };
 
                 // Кэшируем данные (можно кэшировать исходный объект, если он не мутируется дальше)
                 this.pages[cacheKey] = {
-                    data: response.data.data, // response.data.data содержит data и meta
-                    meta: response.data.data.meta
+                    data: response.data, // response.data.data содержит data и meta
+                    meta: response.data.meta
                 };
                 localStorage.setItem('articles_pages', JSON.stringify(this.pages));
                 localStorage.setItem('cachedPagination', JSON.stringify(this.pagination));
@@ -568,7 +569,9 @@ export const useArticlesStore = defineStore('articles', {
         getCurrentArticles: (state) => {
             const cacheKey = `${state.pagination.articlesPerPage}_${state.pagination.currentPage}`;
             const articles = state.pages[cacheKey]?.data?.data || state.articles;
-            return articles;
+            // Фиксируем количество статей согласно пагинации
+            const perPage = state.pagination.articlesPerPage;
+            return articles
         },
         
         isFirst: (state) => {

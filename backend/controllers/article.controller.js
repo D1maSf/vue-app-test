@@ -8,6 +8,7 @@ class ArticleController {
         this.articleService = new ArticleService(pool);
     }
 
+
     getArticles = async (req, res, next) => {
         try {
             const page = parseInt(req.query.page) || 1;
@@ -22,12 +23,12 @@ class ArticleController {
             const totalPages = Math.ceil(total / perPage);
 
             return res.json({
-                data: articles,
+                data: articles, // Массив статей
                 meta: {
                     current_page: page,
                     per_page: perPage,
                     total_pages: totalPages,
-                    total: total,
+                    total
                 }
             });
         } catch (error) {

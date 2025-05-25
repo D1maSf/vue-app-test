@@ -16,6 +16,11 @@ onMounted(() => {
   articlesStore.loadCachePagesBlog();
   const page = parseInt(route.query.page) || 1;
   articlesStore.loadArticles(page, 6); // Загружаем статьи для текущей страницы
+  console.log('Пагинация:', {
+    per_page: articlesStore.pagination.articlesPerPage, // Должно быть 6
+    total: articlesStore.pagination.totalArticles,      // Должно быть 6
+    total_pages: articlesStore.pagination.totalPages   // Должно быть 1
+  });
 });
 
 // Наблюдаем за изменениями страницы в URL
@@ -71,16 +76,8 @@ watch(() => route.query.page, (newPage) => {
 
 <style lang="scss">
 .blog {
-  background-image: url("/image/hero.png");
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("/image/2wq.webp");
   background-position: center;
   background-size: cover;
-
-  .hero {
-    @media #{$xs} {
-      background-image: url("/image/hero.png");
-      background-position: center;
-      background-size: auto;
-    }
-  }
 }
 </style>

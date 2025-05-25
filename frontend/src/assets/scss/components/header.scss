@@ -1,5 +1,5 @@
 $background-color: color(dark);
-$color: color(cream);
+$color: color(white);
 $name-user__color: color(warning);
 
 $nav__background-color: #323136;
@@ -8,11 +8,8 @@ $nav__color: color(cream);
 $topbar__background-color: color(transparent);
 
 .v-app-bar.v-toolbar.header {
-  background-color: $background-color;
+  background-color: #323136d9;
   color: $color;
-
-
-
 
   .name-user {
     color: $name-user__color;
@@ -32,7 +29,7 @@ nav.nav {
 
 
     & .v-btn {
-      color: wheat;
+      color: white;
       background-color:color(dark);
 
       transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s; // Плавность для фона и текста
@@ -84,7 +81,7 @@ nav.nav {
       padding: 25px 5px;
 
       &-item {
-        color: wheat;
+        color: white;
         background-color:color(dark);
         transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s; // Плавность для фона и текста
 
@@ -124,22 +121,6 @@ nav.nav {
   .social-icons {
     margin-top: 25px;
     justify-content: center;
-  }
-}
-
-.topbar {
-  z-index: 1;
-  position: fixed;
-  top: 64px;
-  width: 100%;
-  background-color: $topbar__background-color;
-
-  @media #{$md} {
-    display: none;
-  }
-
-  .social-icons {
-    margin: 7px auto 0 15px;
   }
 }
 

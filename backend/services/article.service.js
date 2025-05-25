@@ -11,18 +11,8 @@ class ArticleService {
     async getAll(page = 1, perPage = 6) {
         try {
             const articles = await this.articleModel.getAll(page, perPage);
-            const total = await this.getCount();
-            const totalPages = Math.ceil(total / perPage);
 
-            return {
-                data: articles,
-                meta: {
-                    current_page: page,
-                    per_page: perPage,
-                    total_pages: totalPages,
-                    total,
-                }
-            };
+            return articles;
         } catch (error) {
             throw new Error(`Error getting articles: ${error.message}`);
         }
@@ -41,15 +31,13 @@ class ArticleService {
     }
 
     async getCount() {
-        try {
-            const query = {
-                text: 'SELECT COUNT(*) as total FROM articles'
-            };
-            const result = await this.pool.query(query);
-            return parseInt(result.rows[0].total);
-        } catch (error) {
-            throw new Error(`Error counting articles: ${error.message}`);
-        }
+        const query = {
+            text: 'SELECT COUNT(*) as total FROM articles WHERE is_published = true'
+        };
+        const result = await this.pool.query(query);
+        const count = parseInt(result.rows[0].total);
+        console.log('DEBUG: Total published articles count:', count); // Логирование
+        return count;
     }
 
     async createArticle(title, content, userId, imageUrl = null) {

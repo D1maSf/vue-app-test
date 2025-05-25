@@ -290,7 +290,7 @@ const toggleForm = async () => {
 
 <style lang="scss">
 .auth {
-  background-image: url("/image/auth.webp");
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("/image/idP5t3FQc5ntEzcbl6yg--0--ya9qu.webp");
   background-position: center;
   background-size: cover;
 }
