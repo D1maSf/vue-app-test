@@ -565,6 +565,8 @@ export const useArticlesStore = defineStore('articles', {
 
     },
 
+
+
     // Переход на первую статью сайта
     goToFirstArticle() {
         // Находим статью с минимальным id (первая статья на сайте)
