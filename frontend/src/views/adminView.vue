@@ -11,7 +11,7 @@ const articlesStore = useArticlesStore();
 const dialog = ref(false);
 const isEditing = ref(false);
 const currentArticle = ref({ id: null, title: '', content: '', image_url: '', file: null, fileName: '', imagePreview: null });
-const { changePage } = useChangePage(6);
+const { changePage } = useChangePage(4);
 
 // Метод для полной очистки кэша
 const clearAllCache = () => {
@@ -25,7 +25,7 @@ onMounted(() => {
     // Загружаем статьи
     const page = parseInt(route.query.page) || 1;
 
-    articlesStore.loadArticles(page, 6); // Загружаем статьи для текущей страницы
+    articlesStore.loadArticles(page, 4); // Загружаем статьи для текущей страницы
 });
 
 const openAddDialog = () => {

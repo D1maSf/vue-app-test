@@ -31,7 +31,7 @@ const isHomePage = computed(() => route.name === 'home');
           <router-link
               v-if="isHomePage"
               to="/about"
-              class="btn"
+              class="btn btn--default"
           >
             <span>Узнать больше о нас</span></router-link>
         </div>

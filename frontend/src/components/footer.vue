@@ -13,7 +13,7 @@ const { isAuthenticated, currentUsername } = useAuth();
     <v-container>
       <v-row>
         <v-toolbar-items class="flex-wrap ga-4">
-          <v-btn class="py-2" v-for="link in navLinks" :key="link.text" :to="link.href">
+          <v-btn class="py-2  btn btn--pixel" v-for="link in navLinks" :key="link.text" :to="link.href">
             {{ link.text }}
           </v-btn>
         </v-toolbar-items>
