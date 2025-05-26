@@ -2,7 +2,7 @@
 import { ref, onMounted, watch, computed, nextTick } from 'vue';
 import { useArticlesStore } from '@/store/articles';
 import { useRoute, useRouter } from 'vue-router';
-import { formatDate, getFullImageUrl } from '@/utils/common';
+import { formatDate, getFullImageUrl, BASE_URL } from '@/utils/common';
 import axios from 'axios';
 import {id} from "vuetify/locale";
 
@@ -40,8 +40,7 @@ const loadPageForArticle = async (id) => {
     console.log(`Запрос к: /api/articles/page-of/${id}?per_page=${articlesPerPage}`);
     console.log('🟡 articlesPerPage:', articlesPerPage);
 
-    const apiBase = import.meta.env.DEV ? 'http://localhost:3000' : ''; // если деплой будет через Nginx
-    const response = await axios.get(`${apiBase}/api/articles/page-of/${id}?per_page=${articlesPerPage}`);
+    const response = await axios.get(`${BASE_URL}/api/articles/page-of/${id}?per_page=${articlesPerPage}`);
     console.log('Full response:', response);
     console.log(' response data:', response.data);
     const page = response.data.page;
@@ -110,7 +109,11 @@ const goToNext = async () => {
 
 function goBack() {
   const page = articlesStore.originPage ?? 1;
-  router.push(`/blog?page=${page}`);
+  if (page === 1) {
+    router.push(`/blog`);
+  } else {
+    router.push(`/blog?page=${page}`);
+  }
 }
 
 onMounted(async () => {

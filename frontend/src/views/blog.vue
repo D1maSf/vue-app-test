@@ -16,11 +16,6 @@ onMounted(() => {
   articlesStore.loadCachePagesBlog();
   const page = parseInt(route.query.page) || 1;
   articlesStore.loadArticles(page, 6); // Загружаем статьи для текущей страницы
-  console.log('Пагинация:', {
-    per_page: articlesStore.pagination.articlesPerPage, // Должно быть 6
-    total: articlesStore.pagination.totalArticles,      // Должно быть 6
-    total_pages: articlesStore.pagination.totalPages   // Должно быть 1
-  });
 });
 
 // Наблюдаем за изменениями страницы в URL

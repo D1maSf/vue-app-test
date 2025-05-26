@@ -102,7 +102,11 @@ export function useChangePage(perPage) {
                 if (pageNum !== articlesStore.pagination.currentPage) {
                         try {
                                 await articlesStore.loadArticles(pageNum, perPage);
-                                router.push({ query: { page: pageNum } });
+                                if (pageNum === 1) {
+                                        router.push({ path: '/blog' }); // без query-параметра
+                                } else {
+                                        router.push({ path: '/blog', query: { page: pageNum } });
+                                }
                         } catch (error) {
                                 console.error('Ошибка при загрузке страницы:', error);
                                 // Можно добавить уведомление пользователю
