@@ -29,22 +29,7 @@ nav.nav {
 
 
     & .v-btn {
-      padding: 10px;
-      border-radius: 5px;
-      text-decoration: unset;
-      font-weight: bold;
-      text-transform: uppercase;
-      font-size: 1rem;
-      cursor: pointer;
-      position: relative;
-      display: inline-block;
-      transform-style: preserve-3d;
-      transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s; // Плавность для фона и текста
-      color: color(dark);
-      background-color: $color--gray;
-      border: 1px solid black;
-      box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #666;
-      transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s; // Плавность для фона и текста
+
 
 
 
@@ -54,49 +39,6 @@ nav.nav {
 
       @media #{$xs} {
         font-size: 0.75rem;
-      }
-
-      &:hover {
-        & span {
-          transform: scale(1.05);
-        }
-      }
-
-
-      &:active {
-        background: $color--dark;
-        transform: translate(0em, 0.75em);
-        color: $color--white;
-        border: 1px solid transparent;
-        box-shadow: unset !important;
-
-
-        &::before {
-          left: 0;
-          top: 0;
-          box-shadow: unset !important;
-          transform: translate3d(0, 0, -1em);
-        }
-
-      }
-
-
-
-
-
-      &::before {
-        position: absolute;
-        content: "";
-        width: 100%;
-        height: 100%;
-        top: -1px;
-        left: 2px;
-        right: 0;
-        bottom: 0;
-        background: color(white);
-        border-radius: inherit;
-        transform: translate3d(0, 0.3em, -1em);
-        transition: transform 0.15s;
       }
     }
   }
@@ -109,54 +51,9 @@ nav.nav {
       flex-direction: column;
       gap: 25px;
       padding: 25px 15px;
-
-      &-item {
-        display: flex;
-        padding: 10px;
-        border-radius: 5px;
-        text-decoration: unset;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 1rem;
-        cursor: pointer;
-        position: relative;
-        transform-style: preserve-3d;
-        transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s; // Плавность для фона и текста
-        color: color(dark);
-        background-color: $color--gray;
-        border: 1px solid black;
-        box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #666;
-
-        &::before {
-          position: absolute;
-          content: "";
-          width: 100%;
-          height: 100%;
-          top: 0;
-          left: 3px;
-          right: 0;
-          bottom: 0;
-          background: color(white);
-          border-radius: inherit;
-          transform: translate3d(0, 0.3em, -1em);
-          transition: transform 0.15s;
-        }
-
-        &:active {
-          background: $color--dark;
-          transform: translate(0em, 0.75em);
-          color: $color--white;
-
-          &::before {
-            left: 0;
-            top: -3px;
-          }
-
-        }
       }
     }
 
-  }
 
   &__scrim {
     cursor: pointer;

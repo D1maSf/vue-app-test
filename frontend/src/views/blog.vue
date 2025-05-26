@@ -52,7 +52,7 @@ watch(() => route.query.page, (newPage) => {
               <p class="card__description">{{ article.content }}...</p>
               <hr class="hr-pixel">
               <div class="card__footer mt-5">
-                <v-btn class="btn btn--default" @click.stop="$router.push(`/blog/${article.id}`)">
+                <v-btn class="btn" @click.stop="$router.push(`/blog/${article.id}`)">
                   Читать дальше
                 </v-btn>
               </div>

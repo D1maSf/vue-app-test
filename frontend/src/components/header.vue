@@ -90,15 +90,15 @@ const allNavLinks = computed(() => {
         </div>
         <!-- Навигация для десктопа (без подменю) -->
         <v-toolbar-items class="d-none d-lg-flex">
-          <v-btn class="py-2" v-for="link in allNavLinks" :key="link.text" :to="link.href">
+          <v-btn class="py-2 btn btn--pixel" v-for="link in allNavLinks" :key="link.text" :to="link.href">
             {{ link.text }}
           </v-btn>
         </v-toolbar-items>
 
         <!-- Кнопки входа/выхода для десктопа -->
         <v-toolbar-items class="d-none d-lg-flex ml-4">
-          <v-btn class="py-2 btn-login" v-if="!isAuthenticated" to="/auth">Вход/Регистрация</v-btn>
-          <v-btn class="py-2 btn-logout" v-else @click="logoutHandler">Выйти</v-btn>
+          <v-btn class="py-2 btn-login btn btn--pixel" v-if="!isAuthenticated" to="/auth">Вход/Регистрация</v-btn>
+          <v-btn class="py-2 btn-logout btn btn--pixel" v-else @click="logoutHandler">Выйти</v-btn>
         </v-toolbar-items>
       </v-row>
     </v-container>
@@ -108,7 +108,7 @@ const allNavLinks = computed(() => {
                         @click:overlay="toggleMenu">
     <v-list dense>
 
-      <v-list-item class="mobile"
+      <v-list-item class="mobile btn btn--pixel"
           v-for="link in allNavLinks"
           :key="link.text"
           :to="link.href"
@@ -121,10 +121,10 @@ const allNavLinks = computed(() => {
 
       </v-list-item>
       <!-- Кнопки входа/выхода для мобильного -->
-      <v-list-item class="btn-login" v-if="!isAuthenticated" to="/auth" @click="isMenuOpen = false">
+      <v-list-item class="btn-login btn btn--pixel" v-if="!isAuthenticated" to="/auth" @click="isMenuOpen = false">
         <v-list-item-title>Вход / Регистрация</v-list-item-title>
       </v-list-item>
-      <v-list-item class="btn-logout" v-else @click="logoutHandler">
+      <v-list-item class="btn-logout btn btn--pixel" v-else @click="logoutHandler">
         <v-list-item-title>Выйти</v-list-item-title>
       </v-list-item>
       <div class="social-icons">

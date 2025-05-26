@@ -332,23 +332,34 @@ export const useArticlesStore = defineStore('articles', {
 
                 console.log('[STORE] addArticle - New article:', JSON.parse(JSON.stringify(newArticle)));
 
-                // Обновляем кэш
-                const cacheKeyCurrentPage = `${this.pagination.articlesPerPage}_1`;
-                if (!this.pages[cacheKeyCurrentPage]) {
-                    this.pages[cacheKeyCurrentPage] = { data: { data: [] }, meta: {} };
-                }
-                this.pages[cacheKeyCurrentPage].data.data.unshift(newArticle);
+                // 1. Полностью сбрасываем кэш для первой страницы
+                const perPage = this.pagination.articlesPerPage;
+                const firstPageKey = `${perPage}_1`;
 
-                if (this.pagination.currentPage === 1) {
-                    this.articles = [...this.pages[cacheKeyCurrentPage].data.data];
-                }
+                // 2. Загружаем свежие данные для первой страницы
+                const freshResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/articles`, {
+                    params: { page: 1, per_page: perPage }
+                });
 
-                this.pagination.totalArticles += 1;
-                if (this.pages[cacheKeyCurrentPage] && this.pages[cacheKeyCurrentPage].meta) {
-                    this.pages[cacheKeyCurrentPage].meta.total = (this.pages[cacheKeyCurrentPage].meta.total || 0) + 1;
-                    this.pages[cacheKeyCurrentPage].meta.total_pages = Math.ceil(this.pages[cacheKeyCurrentPage].meta.total / this.pagination.articlesPerPage);
-                }
-                this.pagination.totalPages = Math.ceil(this.pagination.totalArticles / this.pagination.articlesPerPage);
+                // 3. Обновляем состояние
+                this.pages = {
+                    [firstPageKey]: {
+                        data: { data: freshResponse.data.data },
+                        meta: freshResponse.data.meta
+                    }
+                };
+
+                // 4. Синхронизируем глобальную пагинацию
+                this.pagination = {
+                    currentPage: 1,
+                    articlesPerPage: perPage,
+                    totalArticles: freshResponse.data.meta.total,
+                    totalPages: freshResponse.data.meta.total_pages
+                };
+
+                // 5. Обновляем текущие статьи
+                this.articles = [...freshResponse.data.data];
+
 
                 localStorage.setItem('articles_pages', JSON.stringify(this.pages));
                 localStorage.setItem('cachedPagination', JSON.stringify(this.pagination));
