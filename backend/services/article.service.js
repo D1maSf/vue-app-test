@@ -30,6 +30,12 @@ class ArticleService {
         }
     }
 
+    async getIndexById(id) {
+        const index = await this.articleModel.getIndexById(id);
+        console.log(`articleService.getIndexById(${id}) =>`, index); // 👈
+        return index;
+    }
+
     async getCount() {
         const query = {
             text: 'SELECT COUNT(*) as total FROM articles WHERE is_published = true'

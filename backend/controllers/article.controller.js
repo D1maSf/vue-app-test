@@ -49,6 +49,34 @@ class ArticleController {
         }
     };
 
+    getPageOfArticle = async (req, res, next) => {
+        try {
+            const id = parseInt(req.params.id);
+            if (isNaN(id)) return res.status(400).json({ error: 'Некорректный ID' });
+
+            const perPage = parseInt(req.query.per_page) || 6;
+
+            const index = parseInt(await this.articleService.getIndexById(id), 10);
+
+            if (typeof index !== 'number') {
+                return res.status(500).json({ error: 'Не удалось определить индекс статьи' });
+            }
+
+            const page = Math.floor(index / perPage) + 1;
+
+            console.log(`ID статьи: ${id}, index: ${index}, page: ${page}`);
+
+            res.json({ page });
+        } catch (error) {
+            if (error.message === 'Article not found') {
+                res.status(404).json({ error: 'Статья не найдена' });
+            } else {
+                console.error('Ошибка в getPageOfArticle:', error);
+                res.status(500).json({ error: 'Ошибка на сервере' });
+            }
+        }
+    };
+
     createArticle = async (req, res, next) => {
         console.log(`[CONTROLLER] createArticle - User ID: ${req.user?.id}`);
         console.log('req.headers:', {
@@ -167,6 +195,15 @@ class ArticleController {
             } else {
                 next(error);
             }
+        }
+    };
+
+    getCount = async (req, res, next) => {
+        try {
+            const total = await this.articleService.getCount();
+            res.json({ total });
+        } catch (error) {
+            next(error);
         }
     };
 

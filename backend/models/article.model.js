@@ -62,6 +62,28 @@ class ArticleModel {
         }
     }
 
+    async getIndexById(id) {
+        const query = {
+            text: `
+            SELECT row_number - 1 AS index
+            FROM (
+                SELECT id, ROW_NUMBER() OVER (ORDER BY created_at DESC) AS row_number
+                FROM articles
+                WHERE is_published = true
+            ) sub
+            WHERE id = $1
+        `,
+            values: [id]
+        };
+        const result = await this.pool.query(query);
+        console.log('Результат запроса getIndexById:', result.rows); // 👈
+
+        if (result.rows.length === 0) {
+            throw new Error('Article not found');
+        }
+        return result.rows[0].index;
+    }
+
     // Обновление статьи
     async update(id, userId, updateData) {
         console.log(`[MODEL] update - ID: ${id}, User ID: ${userId}`);

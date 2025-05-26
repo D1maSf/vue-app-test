@@ -30,7 +30,9 @@ module.exports = (pool) => {
 
     router.get('/', articleController.getArticles);
     router.get('/:id', articleController.getArticleById);
-    
+    router.get('/page-of/:id', articleController.getPageOfArticle); // <- НИЖЕ
+
+
     router.post('/',
         authenticateToken,
         isAdmin,

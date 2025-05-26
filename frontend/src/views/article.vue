@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch, computed, nextTick } from 'vue';
 import { useArticlesStore } from '@/store/articles';
 import { useRoute, useRouter } from 'vue-router';
 import { formatDate, getFullImageUrl } from '@/utils/common';
 import axios from 'axios';
+import {id} from "vuetify/locale";
 
 const articlesStore = useArticlesStore();
 const route = useRoute();
@@ -13,80 +14,109 @@ const loading = ref(true);
 const currentId = computed(() => Number(route.params.id));
 const article = computed(() => articlesStore.article);
 
-const canGoPrevious = computed(() => {
+const currentIndex = computed(() => {
+  if (!article.value || !articlesStore.articles.length) return -1;
+  return articlesStore.articles.findIndex(a => a.id === article.value.id);
+});
 
-  if (!article.value || !articlesStore.articles) return false;
-  
-  const currentIndex = articlesStore.articles.findIndex(a => a.id === article.value.id);
-  if (currentIndex === -1) return false;
-  
-  return currentIndex > 0 || (currentIndex === 0 && articlesStore.pagination.currentPage > 1);
+const canGoPrevious = computed(() => {
+  if (currentIndex.value === -1) return false;
+  // Если статья не первая на странице или есть предыдущие страницы
+  return currentIndex.value > 0 || articlesStore.pagination.currentPage > 1;
 });
 
 const canGoNext = computed(() => {
-  if (!article.value || !articlesStore.articles) return false;
-  
-  const currentIndex = articlesStore.articles.findIndex(a => a.id === article.value.id);
-  if (currentIndex === -1) return false;
-  
-  return currentIndex < articlesStore.articles.length - 1 || (currentIndex === articlesStore.articles.length - 1 && articlesStore.pagination.currentPage < articlesStore.pagination.totalPages);
+  if (currentIndex.value === -1) return false;
+  // Если статья не последняя на странице или есть следующие страницы
+  return currentIndex.value < articlesStore.articles.length - 1 || articlesStore.pagination.currentPage < articlesStore.pagination.totalPages;
 });
 
 const loadPageForArticle = async (id) => {
   if (!id || isNaN(id)) return;
-
+  console.log('id:', id);
   const { articlesPerPage } = articlesStore.pagination;
 
-  // Загружаем статьи первой страницы
- const resu = await articlesStore.loadArticles(1, articlesPerPage);
-  console.log(resu, "res");
+  try {
+    console.log(`Запрос к: /api/articles/page-of/${id}?per_page=${articlesPerPage}`);
+    console.log('🟡 articlesPerPage:', articlesPerPage);
 
-  // Загружаем конкретную статью
-  await articlesStore.loadArticleById(id);
+    const apiBase = import.meta.env.DEV ? 'http://localhost:3000' : ''; // если деплой будет через Nginx
+    const response = await axios.get(`${apiBase}/api/articles/page-of/${id}?per_page=${articlesPerPage}`);
+    console.log('Full response:', response);
+    console.log(' response data:', response.data);
+    const page = response.data.page;
+    console.log('Page:', page);
+    articlesStore.setOriginPage(page); // 👈 сохранить страницу
+
+    await articlesStore.loadArticles(page, articlesPerPage);
+    await articlesStore.loadArticleById(id);
+  } catch (error) {
+    console.error('Ошибка при загрузке номера страницы для статьи:', error);
+    if (error.response) {
+      console.error('Ответ с ошибкой от сервера:', error.response.status, error.response.data);
+    } else {
+      console.error('Ошибка вне ответа сервера:', error.message);
+    }
+  }
 };
 
 const goToPrevious = async () => {
-  if (article.value && article.value.id) {
-    await articlesStore.loadArticles(1, articlesStore.pagination.articlesPerPage);
-    const currentIndex = articlesStore.articles.findIndex(a => a.id === article.value.id);
+  if (!article.value?.id) return;
 
-    if (currentIndex > 0) {
-      const previousArticle = articlesStore.articles[currentIndex - 1];
-      router.push(`/blog/${previousArticle.id}`);
-    } else if (currentIndex === 0 && articlesStore.pagination.currentPage > 1) {
-      // Если это первая статья на странице и есть предыдущая страница
-      const previousPage = articlesStore.pagination.currentPage - 1;
-      await articlesStore.loadArticles(previousPage, articlesStore.pagination.articlesPerPage);
+  const { articles, pagination } = articlesStore;
+  const idx = articles.findIndex(a => a.id === article.value.id);
+
+  if (idx > 0) {
+    const prevArticle = articles[idx - 1];
+    await router.push(`/blog/${prevArticle.id}`);
+    return;
+  }
+
+  if (pagination.currentPage > 1) {
+    const prevPage = pagination.currentPage - 1;
+    await articlesStore.loadArticles(prevPage, pagination.articlesPerPage);
+    // Загрузить статью последней на новой странице (последняя статья предыдущей страницы)
+    if (articlesStore.articles.length) {
       const lastArticle = articlesStore.articles[articlesStore.articles.length - 1];
-      router.push(`/blog/${lastArticle.id}`);
+      await articlesStore.loadArticleById(lastArticle.id);  // Обязательно обновляем текущую статью в сторе
+      await router.push(`/blog/${lastArticle.id}`);
     }
   }
 };
 
 const goToNext = async () => {
-  if (article.value && article.value.id) {
-    await articlesStore.loadArticles(1, articlesStore.pagination.articlesPerPage);
-    const currentIndex = articlesStore.articles.findIndex(a => a.id === article.value.id);
+  if (!article.value?.id) return;
 
-    if (currentIndex < articlesStore.articles.length - 1) {
-      const nextArticle = articlesStore.articles[currentIndex + 1];
-      router.push(`/blog/${nextArticle.id}`);
-    } else if (currentIndex === articlesStore.articles.length - 1 && articlesStore.pagination.currentPage < articlesStore.pagination.totalPages) {
-      // Если это последняя статья на странице и есть следующая страница
-      const nextPage = articlesStore.pagination.currentPage + 1;
-      await articlesStore.loadArticles(nextPage, articlesStore.pagination.articlesPerPage);
+  const { articles, pagination } = articlesStore;
+  const idx = articles.findIndex(a => a.id === article.value.id);
+
+  if (idx < articles.length - 1) {
+    const nextArticle = articles[idx + 1];
+    await router.push(`/blog/${nextArticle.id}`);
+    return;
+  }
+
+  if (pagination.currentPage < pagination.totalPages) {
+    const nextPage = pagination.currentPage + 1;
+    await articlesStore.loadArticles(nextPage, pagination.articlesPerPage);
+    // Загрузить статью первой на новой странице
+    if (articlesStore.articles.length) {
       const firstArticle = articlesStore.articles[0];
-      router.push(`/blog/${firstArticle.id}`);
+      await articlesStore.loadArticleById(firstArticle.id);  // Обновляем текущую статью
+      await router.push(`/blog/${firstArticle.id}`);
     }
   }
 };
+
+function goBack() {
+  const page = articlesStore.originPage ?? 1;
+  router.push(`/blog?page=${page}`);
+}
 
 onMounted(async () => {
   await articlesStore.loadCacheArticle();
   await loadPageForArticle(currentId.value);
   loading.value = false;
-  console.log(article, "article.value");
-  console.log(articlesStore.articles, "articlesStore.articles");
 });
 
 watch(
@@ -105,7 +135,7 @@ watch(
   <v-container>
     <v-row justify="center" v-if="article && !loading">
       <v-col cols="12" sm="8" md="7">
-        <v-card>
+        <v-card class="card">
           <h1 class=" mb-4">{{ article.title }}</h1>
           <v-card-subtitle class="mb-4">
             <div class="d-flex align-center">
@@ -117,7 +147,7 @@ watch(
               <span>Опубликовано: {{ formatDate(article.created_at) }}</span>
             </div>
           </v-card-subtitle>
-          
+
           <v-img
               v-if="article.image_url"
               :src="getFullImageUrl(article.image_url)"
@@ -126,19 +156,21 @@ watch(
               height="400"
               cover
           />
-          
+
           <v-card-text class="pa-1">
             <p v-html="article.content" class="article-content"></p>
           </v-card-text>
-          
+
           <v-card-actions class="d-flex justify-space-between flex-wrap">
             <router-link to="/blog" class="btn btn--link">← Назад к блогу</router-link>
+            <v-btn @click="goBack">Назад</v-btn>
+
             <div class="d-flex justify-space-between ga-3">
-              <v-btn @click="goToPrevious" color="primary" :disabled="!canGoPrevious.value">
+              <v-btn @click="goToPrevious" color="primary" :disabled="!canGoPrevious"  :loading="loading">
                 <v-icon icon="mdi-chevron-left" class="mr-1"></v-icon>
                 Предыдущая
               </v-btn>
-              <v-btn @click="goToNext" color="primary" :disabled="!canGoNext.value">
+              <v-btn @click="goToNext" color="primary" :disabled="!canGoNext"  :loading="loading">
                 Следующая
                 <v-icon icon="mdi-chevron-right" class="ml-1"></v-icon>
               </v-btn>
@@ -147,7 +179,7 @@ watch(
         </v-card>
       </v-col>
     </v-row>
-    
+
     <v-row v-else class="fill-height">
       <v-col class="text-center">
         <v-progress-circular
@@ -171,7 +203,7 @@ watch(
   :deep(p) {
     margin-bottom: 1rem;
   }
-  
+
   :deep(img) {
     max-width: 100%;
     height: auto;
