@@ -20,6 +20,8 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',  // Чтобы Vite слушал на всех интерфейсах
     port: 5173
+
+
   },
   resolve: {
     alias: {

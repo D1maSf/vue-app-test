@@ -16,7 +16,9 @@ export const useArticlesStore = defineStore('articles', {
             totalPages: 1,
             totalArticles: 0,
             articlesPerPage: 6
-        }
+        },
+        originPage: null, // 👈 страница, с которой открыта статья
+
     }),
     
     // Инициализируем store при создании
@@ -27,6 +29,9 @@ export const useArticlesStore = defineStore('articles', {
     },
 
     actions: {
+        setOriginPage(page) {
+            this.originPage = page;
+        },
 
         clearCache() {
             localStorage.removeItem('articles_pages');
@@ -42,6 +47,11 @@ export const useArticlesStore = defineStore('articles', {
             };
             this.articles = [];
             console.log('Кэш очищен');
+        },
+
+        goToArticle(articleId) {
+            articlesStore.setOriginPage(articlesStore.pagination.currentPage);
+            router.push(`/article/${articleId}`);
         },
 
         loadCachePagesBlog() {
@@ -202,6 +212,7 @@ export const useArticlesStore = defineStore('articles', {
                 localStorage.setItem('articles_pages', JSON.stringify(this.pages));
             }
         },
+
 
 
         async loadArticleById(id) {
