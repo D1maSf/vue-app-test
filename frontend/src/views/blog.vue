@@ -6,7 +6,7 @@ import { formatDate, getFullImageUrl, useChangePage } from '@/utils/common';
 import Hero from "@/components/hero.vue";
 import Pagination from '@/components/UI/pagination.vue';
 
-const { changePage } = useChangePage(6);
+const { changePage } = useChangePage(6, '/blog');
 const articlesStore = useArticlesStore();
 const route = useRoute();
 const router = useRouter();

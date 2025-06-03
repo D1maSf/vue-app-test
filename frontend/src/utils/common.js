@@ -61,14 +61,11 @@ export function useSocialIcons() {
 
         return { socialIcons };
 }
-
-// Обработчик изменения страницы
-export function useChangePage(perPage) {
+export function useChangePage(perPage, baseRoute = '/blog') {
         const articlesStore = useArticlesStore();
         const router = useRouter();
         const route = useRoute();
 
-        // Загрузка данных при монтировании
         const loadInitialData = async () => {
                 const page = parseInt(route.query.page) || 1;
                 await articlesStore.loadArticles(page, perPage);
@@ -79,7 +76,6 @@ export function useChangePage(perPage) {
                 await loadInitialData();
         });
 
-        // Отслеживание изменений в query параметрах
         watch(
             () => route.query.page,
             async (newPage) => {
@@ -90,7 +86,6 @@ export function useChangePage(perPage) {
             }
         );
 
-        // Обработчик смены страницы
         const changePage = async (page) => {
                 const pageNum = parseInt(page) || 1;
 
@@ -103,14 +98,12 @@ export function useChangePage(perPage) {
                         try {
                                 await articlesStore.loadArticles(pageNum, perPage);
                                 if (pageNum === 1) {
-                                        router.push({ path: '/blog' }); // без query-параметра
+                                        router.push({ path: baseRoute }); // без query-параметра
                                 } else {
-                                        router.push({ path: '/blog', query: { page: pageNum } });
+                                        router.push({ path: baseRoute, query: { page: pageNum } });
                                 }
                         } catch (error) {
                                 console.error('Ошибка при загрузке страницы:', error);
-                                // Можно добавить уведомление пользователю
-                                // alert('Не удалось загрузить страницу');
                         }
                 }
         };

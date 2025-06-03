@@ -11,7 +11,7 @@ const articlesStore = useArticlesStore();
 const dialog = ref(false);
 const isEditing = ref(false);
 const currentArticle = ref({ id: null, title: '', content: '', image_url: '', file: null, fileName: '', imagePreview: null });
-const { changePage } = useChangePage(4);
+const { changePage } = useChangePage(4, '/admin'); // Для админки
 
 // Метод для полной очистки кэша
 const clearAllCache = () => {
