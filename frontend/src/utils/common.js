@@ -41,7 +41,6 @@ export function useBaseLinks() {
         const navLinks = ref([
                 { text: 'Главная', href: '/' },
                 { text: 'О нас', href: '/about' },
-                { text: 'Todo', href: '/todoList' },
                 { text: 'Блог', href: '/blog', hasSubmenu: true },
         ]);
 
