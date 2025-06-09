@@ -117,7 +117,6 @@ function goBack() {
 }
 
 onMounted(async () => {
-  await articlesStore.loadCacheArticle();
   await loadPageForArticle(currentId.value);
   loading.value = false;
 });

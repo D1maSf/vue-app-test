@@ -13,7 +13,6 @@ const router = useRouter();
 
 // Загружаем статьи с пагинацией при монтировании
 onMounted(() => {
-  articlesStore.loadCachePagesBlog();
   const page = parseInt(route.query.page) || 1;
   articlesStore.loadArticles(page, 6); // Загружаем статьи для текущей страницы
 });

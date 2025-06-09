@@ -71,7 +71,6 @@ export function useChangePage(perPage, baseRoute = '/blog') {
         };
 
         onMounted(async () => {
-                articlesStore.initializeCache();
                 await loadInitialData();
         });
 
