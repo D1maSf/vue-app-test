@@ -146,6 +146,8 @@ export const useArticlesStore = defineStore('articles', {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
 
+                this.clearPageCache(this.pagination.currentPage, this.pagination.articlesPerPage);
+
                 // Обновляем кэш для первой страницы
                 await this.loadArticles(1, this.pagination.articlesPerPage);
                 return response.data.data.article;
@@ -223,10 +225,8 @@ export const useArticlesStore = defineStore('articles', {
                 );
 
                 if (this.article?.id === id) this.article = null;
-
-                if (this.articles.length === 0 && this.pagination.currentPage > 1) {
-                    await this.loadArticles(this.pagination.currentPage - 1, this.pagination.articlesPerPage);
-                }
+                this.clearPageCache(this.pagination.currentPage, this.pagination.articlesPerPage);
+                await this.loadArticles(this.pagination.currentPage, this.pagination.articlesPerPage);
             } catch (error) {
                 this.error = 'Ошибка удаления статьи: ' + error.message;
                 console.error(error);
