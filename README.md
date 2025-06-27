@@ -41,8 +41,7 @@
 
 ## 📸 Скриншоты
 - Главная страница блога
-
-![Image](https://github.com/user-attachments/assets/0f4b6870-ad80-43b5-b99b-baae89274e0b)
+![Image](https://github.com/user-attachments/assets/5991e2d9-a933-4ee7-9fe1-a173a7338e2e)
 
 
 ## 🛠 Установка и запуск
